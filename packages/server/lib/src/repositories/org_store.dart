@@ -268,6 +268,24 @@ class OrgStore {
     );
   }
 
+  /// All tasks in this org, across every project. Used by the dashboard,
+  /// which needs org-wide counts rather than a single project's tasks.
+  Future<List<core.Task>> listAllTasks() async {
+    final rows = await _db.select(_db.tasks).get();
+    return rows.map(_taskToModel).toList();
+  }
+
+  /// Most recent events across every task in this org, newest first. Used
+  /// to build the dashboard's recent-activity feed.
+  Future<List<core.TaskEvent>> listRecentEvents({int limit = 20}) async {
+    final rows =
+        await (_db.select(_db.taskEvents)
+              ..orderBy([(e) => OrderingTerm.desc(e.ts)])
+              ..limit(limit))
+            .get();
+    return rows.map(_eventToModel).toList();
+  }
+
   Future<List<core.Task>> listTasks(
     String projectId, {
     core.TaskStatus? status,

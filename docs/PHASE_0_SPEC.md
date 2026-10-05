@@ -97,7 +97,7 @@ only after the owner confirms.
 (Update after each approved slice.)
 - [x] 1. Workspace + core
 - [x] 2. Storage + isolation tests
-- [ ] 3. Server routes
+- [x] 3. Server routes
 - [ ] 4. App shell
 - [ ] 5. Tasks UI
 - [ ] 6. Dashboard

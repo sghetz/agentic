@@ -1,0 +1,9 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          # Event timestamps need sub-second precision (several events can be
+          # appended within the same second); drift's default of unix-seconds
+          # integers would silently collapse them.
+          store_date_time_values_as_text: true

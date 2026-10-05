@@ -6,5 +6,5 @@ environment:
 
 workspace:
   - packages/core
-  # - packages/server  # added in slice 2
+  - packages/server
   # - packages/app     # added in slice 4

@@ -1,0 +1,488 @@
+import 'dart:convert';
+
+import 'package:core/core.dart' as core;
+import 'package:drift/drift.dart';
+import 'package:sqlite3/sqlite3.dart' show SqliteException;
+
+import '../storage/org_database.dart';
+
+class ProjectNotFound implements Exception {
+  ProjectNotFound(this.id);
+  final String id;
+
+  @override
+  String toString() => 'ProjectNotFound($id)';
+}
+
+class TaskNotFound implements Exception {
+  TaskNotFound(this.id);
+  final String id;
+
+  @override
+  String toString() => 'TaskNotFound($id)';
+}
+
+class DuplicateProjectSlug implements Exception {
+  DuplicateProjectSlug(this.slug);
+  final String slug;
+
+  @override
+  String toString() => 'DuplicateProjectSlug($slug)';
+}
+
+/// A project link named a `toProjectId` that doesn't exist in this org's
+/// database -- either a typo, or (per the non-negotiable isolation rule) a
+/// project that belongs to a different organization. Both look identical
+/// from here, which is the point: this store has no way to even see
+/// another org's projects.
+class CrossOrgLinkRejected implements Exception {
+  CrossOrgLinkRejected(this.toProjectId);
+  final String toProjectId;
+
+  @override
+  String toString() => 'CrossOrgLinkRejected($toProjectId)';
+}
+
+class InvalidTaskTransition implements Exception {
+  InvalidTaskTransition(this.from, this.attempted, this.allowed);
+  final core.TaskStatus from;
+  final core.TaskStatus attempted;
+  final Set<core.TaskStatus> allowed;
+
+  @override
+  String toString() =>
+      'InvalidTaskTransition($from -> $attempted, allowed: $allowed)';
+}
+
+/// Everything scoped to one organization, opened against that org's own
+/// `orgs/<orgId>/data.db`. No method here (or anywhere) accepts a second
+/// orgId -- cross-org access is structurally impossible, not just checked.
+class OrgStore {
+  OrgStore(this.orgId, this._db);
+
+  final String orgId;
+  final OrgDatabase _db;
+
+  Future<void> close() => _db.close();
+
+  // ---- Projects ----
+
+  Future<core.Project> createProject(core.CreateProjectRequest request) async {
+    final id = core.newId();
+    final now = DateTime.now().toUtc();
+    try {
+      await _db
+          .into(_db.projects)
+          .insert(
+            ProjectsCompanion.insert(
+              id: id,
+              name: request.name,
+              slug: request.slug,
+              reposJson: jsonEncode(
+                request.repos.map((r) => r.toJson()).toList(),
+              ),
+              status: core.ProjectStatus.active,
+              createdAt: now,
+              flutterVersion: Value(request.flutterVersion),
+              designSystemRef: Value(request.designSystemRef),
+            ),
+          );
+    } on SqliteException catch (e) {
+      if (e.message.contains('UNIQUE constraint failed')) {
+        throw DuplicateProjectSlug(request.slug);
+      }
+      rethrow;
+    }
+    return (await getProject(id))!;
+  }
+
+  Future<core.Project?> getProject(String id) async {
+    final row = await (_db.select(
+      _db.projects,
+    )..where((p) => p.id.equals(id))).getSingleOrNull();
+    return row == null ? null : _projectToModel(row);
+  }
+
+  Future<List<core.Project>> listProjects({
+    bool includeArchived = false,
+  }) async {
+    final select = _db.select(_db.projects);
+    if (!includeArchived) {
+      select.where(
+        (p) => p.status.equalsValue(core.ProjectStatus.archived).not(),
+      );
+    }
+    final rows = await select.get();
+    return rows.map(_projectToModel).toList();
+  }
+
+  Future<core.Project> updateProject(
+    String id,
+    core.UpdateProjectRequest request,
+  ) async {
+    if (await getProject(id) == null) throw ProjectNotFound(id);
+
+    try {
+      await (_db.update(_db.projects)..where((p) => p.id.equals(id))).write(
+        ProjectsCompanion(
+          name: request.name == null
+              ? const Value.absent()
+              : Value(request.name!),
+          slug: request.slug == null
+              ? const Value.absent()
+              : Value(request.slug!),
+          reposJson: request.repos == null
+              ? const Value.absent()
+              : Value(
+                  jsonEncode(request.repos!.map((r) => r.toJson()).toList()),
+                ),
+          flutterVersion: request.flutterVersion == null
+              ? const Value.absent()
+              : Value(request.flutterVersion),
+          designSystemRef: request.designSystemRef == null
+              ? const Value.absent()
+              : Value(request.designSystemRef),
+          status: request.status == null
+              ? const Value.absent()
+              : Value(request.status!),
+        ),
+      );
+    } on SqliteException catch (e) {
+      if (e.message.contains('UNIQUE constraint failed')) {
+        throw DuplicateProjectSlug(request.slug!);
+      }
+      rethrow;
+    }
+    return (await getProject(id))!;
+  }
+
+  Future<core.Project> archiveProject(String id) async {
+    if (await getProject(id) == null) throw ProjectNotFound(id);
+
+    final now = DateTime.now().toUtc();
+    await (_db.update(_db.projects)..where((p) => p.id.equals(id))).write(
+      ProjectsCompanion(
+        status: Value(core.ProjectStatus.archived),
+        archivedAt: Value(now),
+      ),
+    );
+    return (await getProject(id))!;
+  }
+
+  // ---- Project links ----
+
+  Future<core.ProjectLink> createProjectLink(
+    String fromProjectId,
+    core.CreateProjectLinkRequest request,
+  ) async {
+    if (await getProject(fromProjectId) == null) {
+      throw ProjectNotFound(fromProjectId);
+    }
+    if (await getProject(request.toProjectId) == null) {
+      throw CrossOrgLinkRejected(request.toProjectId);
+    }
+
+    final id = core.newId();
+    await _db
+        .into(_db.projectLinks)
+        .insert(
+          ProjectLinksCompanion.insert(
+            id: id,
+            fromProjectId: fromProjectId,
+            toProjectId: request.toProjectId,
+            relation: request.relation,
+          ),
+        );
+    final row = await (_db.select(
+      _db.projectLinks,
+    )..where((l) => l.id.equals(id))).getSingle();
+    return _linkToModel(row);
+  }
+
+  Future<List<core.ProjectLink>> listProjectLinks(String projectId) async {
+    final rows = await (_db.select(
+      _db.projectLinks,
+    )..where((l) => l.fromProjectId.equals(projectId))).get();
+    return rows.map(_linkToModel).toList();
+  }
+
+  Future<void> deleteProjectLink(String projectId, String linkId) async {
+    final deleted =
+        await (_db.delete(_db.projectLinks)..where(
+              (l) => l.id.equals(linkId) & l.fromProjectId.equals(projectId),
+            ))
+            .go();
+    if (deleted == 0) throw ProjectNotFound(linkId);
+  }
+
+  // ---- Tasks ----
+
+  Future<core.Task> createTask(
+    String projectId,
+    core.CreateTaskRequest request,
+  ) async {
+    if (await getProject(projectId) == null) throw ProjectNotFound(projectId);
+
+    final id = core.newId();
+    final now = DateTime.now().toUtc();
+    await _db.transaction(() async {
+      await _db
+          .into(_db.tasks)
+          .insert(
+            TasksCompanion.insert(
+              id: id,
+              projectId: projectId,
+              title: request.title,
+              currentStatus: core.TaskStatus.newTask,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      await _insertEvent(
+        taskId: id,
+        ts: now,
+        actor: const core.Actor.user(),
+        eventType: core.TaskEventType.created,
+        payload: const {},
+      );
+    });
+    return (await getTask(id))!;
+  }
+
+  Future<core.Task?> getTask(String id, {DateTime? at}) async {
+    final row = await (_db.select(
+      _db.tasks,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (row == null) return null;
+    if (at == null) return _taskToModel(row);
+
+    final events = await listTaskEvents(id);
+    final state = core.deriveTaskAt(events, at);
+    return core.Task(
+      id: row.id,
+      projectId: row.projectId,
+      title: row.title,
+      currentStatus: state.status,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    );
+  }
+
+  Future<List<core.Task>> listTasks(
+    String projectId, {
+    core.TaskStatus? status,
+    DateTime? from,
+    DateTime? to,
+    String? query,
+  }) async {
+    final select = _db.select(_db.tasks)
+      ..where((t) => t.projectId.equals(projectId));
+    if (status != null) {
+      select.where((t) => t.currentStatus.equalsValue(status));
+    }
+    if (from != null) {
+      select.where((t) => t.createdAt.isBiggerOrEqualValue(from));
+    }
+    if (to != null) {
+      select.where((t) => t.createdAt.isSmallerOrEqualValue(to));
+    }
+    if (query != null && query.isNotEmpty) {
+      select.where((t) => t.title.like('%$query%'));
+    }
+    final rows = await select.get();
+    return rows.map(_taskToModel).toList();
+  }
+
+  /// Validates the transition against the task's derived state, appends
+  /// the event, and rewrites the `tasks.currentStatus`/`updatedAt` cache
+  /// from the fold -- all inside one transaction.
+  Future<core.TaskEvent> appendTaskEvent(
+    String taskId,
+    core.CreateTaskEventRequest request,
+  ) async {
+    final taskRow = await (_db.select(
+      _db.tasks,
+    )..where((t) => t.id.equals(taskId))).getSingleOrNull();
+    if (taskRow == null) throw TaskNotFound(taskId);
+
+    final existingEvents = await listTaskEvents(taskId);
+    final currentState = core.deriveTask(existingEvents);
+
+    if (request.eventType == core.TaskEventType.statusChanged) {
+      final to = core.TaskStatus.values.byName(request.payload['to'] as String);
+      if (!core.canTransition(currentState, to)) {
+        throw InvalidTaskTransition(
+          currentState.status,
+          to,
+          core.allowedNextStatuses(currentState),
+        );
+      }
+    } else if (request.eventType == core.TaskEventType.reopened) {
+      if (currentState.status != core.TaskStatus.done) {
+        throw InvalidTaskTransition(
+          currentState.status,
+          core.TaskStatus.specified,
+          const {},
+        );
+      }
+    }
+
+    final now = DateTime.now().toUtc();
+    late core.TaskEvent inserted;
+    await _db.transaction(() async {
+      inserted = await _insertEvent(
+        taskId: taskId,
+        ts: now,
+        actor: request.actor,
+        eventType: request.eventType,
+        payload: request.payload,
+      );
+      final newState = core.deriveTask([...existingEvents, inserted]);
+      await (_db.update(_db.tasks)..where((t) => t.id.equals(taskId))).write(
+        TasksCompanion(
+          currentStatus: Value(newState.status),
+          updatedAt: Value(now),
+        ),
+      );
+    });
+    return inserted;
+  }
+
+  Future<List<core.TaskEvent>> listTaskEvents(String taskId) async {
+    final rows =
+        await (_db.select(_db.taskEvents)
+              ..where((e) => e.taskId.equals(taskId))
+              ..orderBy([(e) => OrderingTerm.asc(e.ts)]))
+            .get();
+    return rows.map(_eventToModel).toList();
+  }
+
+  Future<core.TaskEvent> _insertEvent({
+    required String taskId,
+    required DateTime ts,
+    required core.Actor actor,
+    required core.TaskEventType eventType,
+    required Map<String, Object?> payload,
+  }) async {
+    final id = core.newId();
+    await _db
+        .into(_db.taskEvents)
+        .insert(
+          TaskEventsCompanion.insert(
+            id: id,
+            taskId: taskId,
+            ts: ts,
+            actor: actor.toStorageString(),
+            eventType: eventType,
+            payloadJson: jsonEncode(payload),
+          ),
+        );
+    return core.TaskEvent(
+      id: id,
+      taskId: taskId,
+      ts: ts,
+      actor: actor,
+      eventType: eventType,
+      payload: payload,
+    );
+  }
+
+  // ---- Artifacts ----
+
+  Future<core.Artifact> createArtifact(
+    String taskId,
+    core.CreateArtifactRequest request,
+  ) async {
+    if (await getTask(taskId) == null) throw TaskNotFound(taskId);
+
+    final existingOfKind = (await listArtifacts(
+      taskId,
+    )).where((a) => a.kind == request.kind);
+    final nextVersion =
+        existingOfKind.fold<int>(
+          0,
+          (max, a) => a.version > max ? a.version : max,
+        ) +
+        1;
+
+    final id = core.newId();
+    final now = DateTime.now().toUtc();
+    await _db
+        .into(_db.artifacts)
+        .insert(
+          ArtifactsCompanion.insert(
+            id: id,
+            taskId: taskId,
+            kind: request.kind,
+            uri: request.uri,
+            version: nextVersion,
+            createdAt: now,
+          ),
+        );
+    return core.Artifact(
+      id: id,
+      taskId: taskId,
+      kind: request.kind,
+      uri: request.uri,
+      version: nextVersion,
+      createdAt: now,
+    );
+  }
+
+  Future<List<core.Artifact>> listArtifacts(String taskId) async {
+    final rows = await (_db.select(
+      _db.artifacts,
+    )..where((a) => a.taskId.equals(taskId))).get();
+    return rows.map(_artifactToModel).toList();
+  }
+
+  // ---- row <-> core model mapping ----
+
+  core.Project _projectToModel(ProjectRow row) => core.Project(
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    repos: (jsonDecode(row.reposJson) as List)
+        .map((e) => core.RepoConfig.fromJson(e as Map<String, Object?>))
+        .toList(),
+    status: row.status,
+    createdAt: row.createdAt,
+    flutterVersion: row.flutterVersion,
+    designSystemRef: row.designSystemRef,
+    archivedAt: row.archivedAt,
+  );
+
+  core.ProjectLink _linkToModel(ProjectLinkRow row) => core.ProjectLink(
+    id: row.id,
+    fromProjectId: row.fromProjectId,
+    toProjectId: row.toProjectId,
+    relation: row.relation,
+  );
+
+  core.Task _taskToModel(TaskRow row) => core.Task(
+    id: row.id,
+    projectId: row.projectId,
+    title: row.title,
+    currentStatus: row.currentStatus,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  );
+
+  core.TaskEvent _eventToModel(TaskEventRow row) => core.TaskEvent(
+    id: row.id,
+    taskId: row.taskId,
+    ts: row.ts,
+    actor: core.Actor.parse(row.actor),
+    eventType: row.eventType,
+    payload: jsonDecode(row.payloadJson) as Map<String, Object?>,
+  );
+
+  core.Artifact _artifactToModel(ArtifactRow row) => core.Artifact(
+    id: row.id,
+    taskId: row.taskId,
+    kind: row.kind,
+    uri: row.uri,
+    version: row.version,
+    createdAt: row.createdAt,
+  );
+}

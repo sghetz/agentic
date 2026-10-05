@@ -95,8 +95,8 @@ only after the owner confirms.
 
 ## Progress
 (Update after each approved slice.)
-- [ ] 1. Workspace + core
-- [ ] 2. Storage + isolation tests
+- [x] 1. Workspace + core
+- [x] 2. Storage + isolation tests
 - [ ] 3. Server routes
 - [ ] 4. App shell
 - [ ] 5. Tasks UI

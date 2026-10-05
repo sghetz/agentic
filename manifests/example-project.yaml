@@ -1,0 +1,31 @@
+# Example project manifest. One per project; also stored in the org DB.
+organization: employer            # org slug
+project:
+  name: Example Banking App
+  slug: example-banking-app
+  status: active                  # active | paused | archived
+
+repos:
+  - url: git@github.com:your-org/example-banking-app.git
+    default_branch: main
+    path: ~/Agentic/repos/employer/example-banking-app
+
+flutter:
+  version: 3.29.0                 # pinned via FVM
+  platforms: [android, ios]
+
+design_system:
+  package: your_org_design_system # inherited from org unless overridden
+
+sources:
+  slack_channels: ["#banking-app-dev"]
+  google_chat_spaces: ["spaces/XXXXXXXX"]
+  erf_folder: ~/Documents/ERF/banking-app
+
+links:
+  - project: shared-auth-package
+    relation: depends_on
+
+health:
+  schedule: "0 8 * * 1-5"         # weekdays 08:00
+  steps: [pub_get, analyze, test, build_apk, build_ios_no_codesign]

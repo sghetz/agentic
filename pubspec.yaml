@@ -1,0 +1,10 @@
+name: agentic
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+workspace:
+  - packages/core
+  # - packages/server  # added in slice 2
+  # - packages/app     # added in slice 4

@@ -1,0 +1,24 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+*.lock
+!pubspec.lock
+
+# Keep pubspec.lock for the app (reproducible builds); ignore for libraries.
+packages/core/pubspec.lock
+packages/server/pubspec.lock
+
+# Flutter macOS
+packages/app/macos/Flutter/ephemeral/
+packages/app/macos/Pods/
+packages/app/macos/Podfile.lock
+packages/app/.flutter-plugins
+packages/app/.flutter-plugins-dependencies
+
+# IDE
+.idea/
+.vscode/
+
+# macOS
+.DS_Store

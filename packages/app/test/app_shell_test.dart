@@ -12,6 +12,10 @@ class _FakeApiClient extends ApiClient {
 
   @override
   Future<List<core.Organization>> listOrgs() async => [];
+
+  @override
+  Future<core.DashboardSummary> dashboard() async =>
+      const core.DashboardSummary(orgs: []);
 }
 
 Widget _buildApp() {
@@ -43,6 +47,6 @@ void main() {
     await tester.tap(find.text('Dashboard'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Dashboard coming in the next slice'), findsOneWidget);
+    expect(find.text('No organizations yet'), findsOneWidget);
   });
 }

@@ -100,4 +100,4 @@ only after the owner confirms.
 - [x] 3. Server routes
 - [x] 4. App shell
 - [x] 5. Tasks UI
-- [ ] 6. Dashboard
+- [x] 6. Dashboard

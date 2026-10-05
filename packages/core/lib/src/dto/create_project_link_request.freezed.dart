@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'create_project_link_request.dart';
@@ -9,6 +9,7 @@ part of 'create_project_link_request.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $CreateProjectLinkRequestCopyWith<CreateProjectLinkRequest> get copyWith => _$Cr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateProjectLinkRequest&&(identical(other.toProjectId, toProjectId) || other.toProjectId == toProjectId)&&(identical(other.relation, relation) || other.relation == relation));
+  final _this = this as CreateProjectLinkRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateProjectLinkRequest&&(identical(other.toProjectId, _this.toProjectId) || other.toProjectId == _this.toProjectId)&&(identical(other.relation, _this.relation) || other.relation == _this.relation));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,toProjectId,relation);
+int get hashCode {
+  final _this = this as CreateProjectLinkRequest;
+  return Object.hash(runtimeType,_this.toProjectId,_this.relation);
+}
 
 @override
 String toString() {
-  return 'CreateProjectLinkRequest(toProjectId: $toProjectId, relation: $relation)';
+  final _this = this as CreateProjectLinkRequest;
+  return 'CreateProjectLinkRequest(toProjectId: ${_this.toProjectId}, relation: ${_this.relation})';
 }
 
 
@@ -66,7 +72,7 @@ class _$CreateProjectLinkRequestCopyWithImpl<$Res>
 /// Create a copy of CreateProjectLinkRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? toProjectId = null,Object? relation = null,}) {
-  return _then(_self.copyWith(
+  return _then(CreateProjectLinkRequest(
 toProjectId: null == toProjectId ? _self.toProjectId : toProjectId // ignore: cast_nullable_to_non_nullable
 as String,relation: null == relation ? _self.relation : relation // ignore: cast_nullable_to_non_nullable
 as LinkRelation,
@@ -223,16 +229,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateProjectLinkRequest&&(identical(other.toProjectId, toProjectId) || other.toProjectId == toProjectId)&&(identical(other.relation, relation) || other.relation == relation));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateProjectLinkRequest&&(identical(other.toProjectId, toProjectId) || other.toProjectId == toProjectId)&&(identical(other.relation, relation) || other.relation == relation));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,toProjectId,relation);
+int get hashCode {
+    return Object.hash(runtimeType,toProjectId,relation);
+}
 
 @override
 String toString() {
-  return 'CreateProjectLinkRequest(toProjectId: $toProjectId, relation: $relation)';
+    return 'CreateProjectLinkRequest(toProjectId: $toProjectId, relation: $relation)';
 }
 
 

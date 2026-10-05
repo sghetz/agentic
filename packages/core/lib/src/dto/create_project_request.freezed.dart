@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'create_project_request.dart';
@@ -9,6 +9,7 @@ part of 'create_project_request.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $CreateProjectRequestCopyWith<CreateProjectRequest> get copyWith => _$CreateProj
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateProjectRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&const DeepCollectionEquality().equals(other.repos, repos)&&(identical(other.flutterVersion, flutterVersion) || other.flutterVersion == flutterVersion)&&(identical(other.designSystemRef, designSystemRef) || other.designSystemRef == designSystemRef));
+  final _this = this as CreateProjectRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateProjectRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&const DeepCollectionEquality().equals(other.repos, _this.repos)&&(identical(other.flutterVersion, _this.flutterVersion) || other.flutterVersion == _this.flutterVersion)&&(identical(other.designSystemRef, _this.designSystemRef) || other.designSystemRef == _this.designSystemRef));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,slug,const DeepCollectionEquality().hash(repos),flutterVersion,designSystemRef);
+int get hashCode {
+  final _this = this as CreateProjectRequest;
+  return Object.hash(runtimeType,_this.name,_this.slug,const DeepCollectionEquality().hash(_this.repos),_this.flutterVersion,_this.designSystemRef);
+}
 
 @override
 String toString() {
-  return 'CreateProjectRequest(name: $name, slug: $slug, repos: $repos, flutterVersion: $flutterVersion, designSystemRef: $designSystemRef)';
+  final _this = this as CreateProjectRequest;
+  return 'CreateProjectRequest(name: ${_this.name}, slug: ${_this.slug}, repos: ${_this.repos}, flutterVersion: ${_this.flutterVersion}, designSystemRef: ${_this.designSystemRef})';
 }
 
 
@@ -66,7 +72,7 @@ class _$CreateProjectRequestCopyWithImpl<$Res>
 /// Create a copy of CreateProjectRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? slug = null,Object? repos = null,Object? flutterVersion = freezed,Object? designSystemRef = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(CreateProjectRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,repos: null == repos ? _self.repos : repos // ignore: cast_nullable_to_non_nullable
@@ -207,7 +213,7 @@ return $default(_that.name,_that.slug,_that.repos,_that.flutterVersion,_that.des
 @JsonSerializable()
 
 class _CreateProjectRequest implements CreateProjectRequest {
-  const _CreateProjectRequest({required this.name, required this.slug, final  List<RepoConfig> repos = const [], this.flutterVersion, this.designSystemRef}): _repos = repos;
+  const _CreateProjectRequest({required this.name, required this.slug,  List<RepoConfig> repos = const [], this.flutterVersion, this.designSystemRef}): _repos = repos;
   factory _CreateProjectRequest.fromJson(Map<String, dynamic> json) => _$CreateProjectRequestFromJson(json);
 
 @override final  String name;
@@ -235,16 +241,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateProjectRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&const DeepCollectionEquality().equals(other._repos, _repos)&&(identical(other.flutterVersion, flutterVersion) || other.flutterVersion == flutterVersion)&&(identical(other.designSystemRef, designSystemRef) || other.designSystemRef == designSystemRef));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateProjectRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&const DeepCollectionEquality().equals(other.repos, _repos)&&(identical(other.flutterVersion, flutterVersion) || other.flutterVersion == flutterVersion)&&(identical(other.designSystemRef, designSystemRef) || other.designSystemRef == designSystemRef));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,slug,const DeepCollectionEquality().hash(_repos),flutterVersion,designSystemRef);
+int get hashCode {
+    return Object.hash(runtimeType,name,slug,const DeepCollectionEquality().hash(_repos),flutterVersion,designSystemRef);
+}
 
 @override
 String toString() {
-  return 'CreateProjectRequest(name: $name, slug: $slug, repos: $repos, flutterVersion: $flutterVersion, designSystemRef: $designSystemRef)';
+    return 'CreateProjectRequest(name: $name, slug: $slug, repos: $repos, flutterVersion: $flutterVersion, designSystemRef: $designSystemRef)';
 }
 
 

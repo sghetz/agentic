@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'dashboard_summary.dart';
@@ -9,6 +9,7 @@ part of 'dashboard_summary.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $RecentActivityItemCopyWith<RecentActivityItem> get copyWith => _$RecentActivity
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecentActivityItem&&(identical(other.taskId, taskId) || other.taskId == taskId)&&(identical(other.taskTitle, taskTitle) || other.taskTitle == taskTitle)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.ts, ts) || other.ts == ts)&&(identical(other.actor, actor) || other.actor == actor)&&(identical(other.eventType, eventType) || other.eventType == eventType));
+  final _this = this as RecentActivityItem;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecentActivityItem&&(identical(other.taskId, _this.taskId) || other.taskId == _this.taskId)&&(identical(other.taskTitle, _this.taskTitle) || other.taskTitle == _this.taskTitle)&&(identical(other.projectId, _this.projectId) || other.projectId == _this.projectId)&&(identical(other.projectName, _this.projectName) || other.projectName == _this.projectName)&&(identical(other.ts, _this.ts) || other.ts == _this.ts)&&(identical(other.actor, _this.actor) || other.actor == _this.actor)&&(identical(other.eventType, _this.eventType) || other.eventType == _this.eventType));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,taskId,taskTitle,projectId,projectName,ts,actor,eventType);
+int get hashCode {
+  final _this = this as RecentActivityItem;
+  return Object.hash(runtimeType,_this.taskId,_this.taskTitle,_this.projectId,_this.projectName,_this.ts,_this.actor,_this.eventType);
+}
 
 @override
 String toString() {
-  return 'RecentActivityItem(taskId: $taskId, taskTitle: $taskTitle, projectId: $projectId, projectName: $projectName, ts: $ts, actor: $actor, eventType: $eventType)';
+  final _this = this as RecentActivityItem;
+  return 'RecentActivityItem(taskId: ${_this.taskId}, taskTitle: ${_this.taskTitle}, projectId: ${_this.projectId}, projectName: ${_this.projectName}, ts: ${_this.ts}, actor: ${_this.actor}, eventType: ${_this.eventType})';
 }
 
 
@@ -66,7 +72,7 @@ class _$RecentActivityItemCopyWithImpl<$Res>
 /// Create a copy of RecentActivityItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? taskId = null,Object? taskTitle = null,Object? projectId = null,Object? projectName = null,Object? ts = null,Object? actor = null,Object? eventType = null,}) {
-  return _then(_self.copyWith(
+  return _then(RecentActivityItem(
 taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
 as String,taskTitle: null == taskTitle ? _self.taskTitle : taskTitle // ignore: cast_nullable_to_non_nullable
 as String,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
@@ -233,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecentActivityItem&&(identical(other.taskId, taskId) || other.taskId == taskId)&&(identical(other.taskTitle, taskTitle) || other.taskTitle == taskTitle)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.ts, ts) || other.ts == ts)&&(identical(other.actor, actor) || other.actor == actor)&&(identical(other.eventType, eventType) || other.eventType == eventType));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecentActivityItem&&(identical(other.taskId, taskId) || other.taskId == taskId)&&(identical(other.taskTitle, taskTitle) || other.taskTitle == taskTitle)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.ts, ts) || other.ts == ts)&&(identical(other.actor, actor) || other.actor == actor)&&(identical(other.eventType, eventType) || other.eventType == eventType));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,taskId,taskTitle,projectId,projectName,ts,actor,eventType);
+int get hashCode {
+    return Object.hash(runtimeType,taskId,taskTitle,projectId,projectName,ts,actor,eventType);
+}
 
 @override
 String toString() {
-  return 'RecentActivityItem(taskId: $taskId, taskTitle: $taskTitle, projectId: $projectId, projectName: $projectName, ts: $ts, actor: $actor, eventType: $eventType)';
+    return 'RecentActivityItem(taskId: $taskId, taskTitle: $taskTitle, projectId: $projectId, projectName: $projectName, ts: $ts, actor: $actor, eventType: $eventType)';
 }
 
 
@@ -303,16 +311,21 @@ $DashboardOrgSummaryCopyWith<DashboardOrgSummary> get copyWith => _$DashboardOrg
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardOrgSummary&&(identical(other.orgId, orgId) || other.orgId == orgId)&&(identical(other.orgName, orgName) || other.orgName == orgName)&&const DeepCollectionEquality().equals(other.taskCountsByStatus, taskCountsByStatus)&&const DeepCollectionEquality().equals(other.recentActivity, recentActivity));
+  final _this = this as DashboardOrgSummary;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardOrgSummary&&(identical(other.orgId, _this.orgId) || other.orgId == _this.orgId)&&(identical(other.orgName, _this.orgName) || other.orgName == _this.orgName)&&const DeepCollectionEquality().equals(other.taskCountsByStatus, _this.taskCountsByStatus)&&const DeepCollectionEquality().equals(other.recentActivity, _this.recentActivity));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,orgId,orgName,const DeepCollectionEquality().hash(taskCountsByStatus),const DeepCollectionEquality().hash(recentActivity));
+int get hashCode {
+  final _this = this as DashboardOrgSummary;
+  return Object.hash(runtimeType,_this.orgId,_this.orgName,const DeepCollectionEquality().hash(_this.taskCountsByStatus),const DeepCollectionEquality().hash(_this.recentActivity));
+}
 
 @override
 String toString() {
-  return 'DashboardOrgSummary(orgId: $orgId, orgName: $orgName, taskCountsByStatus: $taskCountsByStatus, recentActivity: $recentActivity)';
+  final _this = this as DashboardOrgSummary;
+  return 'DashboardOrgSummary(orgId: ${_this.orgId}, orgName: ${_this.orgName}, taskCountsByStatus: ${_this.taskCountsByStatus}, recentActivity: ${_this.recentActivity})';
 }
 
 
@@ -341,7 +354,7 @@ class _$DashboardOrgSummaryCopyWithImpl<$Res>
 /// Create a copy of DashboardOrgSummary
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? orgId = null,Object? orgName = null,Object? taskCountsByStatus = null,Object? recentActivity = null,}) {
-  return _then(_self.copyWith(
+  return _then(DashboardOrgSummary(
 orgId: null == orgId ? _self.orgId : orgId // ignore: cast_nullable_to_non_nullable
 as String,orgName: null == orgName ? _self.orgName : orgName // ignore: cast_nullable_to_non_nullable
 as String,taskCountsByStatus: null == taskCountsByStatus ? _self.taskCountsByStatus : taskCountsByStatus // ignore: cast_nullable_to_non_nullable
@@ -481,7 +494,7 @@ return $default(_that.orgId,_that.orgName,_that.taskCountsByStatus,_that.recentA
 @JsonSerializable()
 
 class _DashboardOrgSummary implements DashboardOrgSummary {
-  const _DashboardOrgSummary({required this.orgId, required this.orgName, required final  Map<TaskStatus, int> taskCountsByStatus, required final  List<RecentActivityItem> recentActivity}): _taskCountsByStatus = taskCountsByStatus,_recentActivity = recentActivity;
+  const _DashboardOrgSummary({required this.orgId, required this.orgName, required  Map<TaskStatus, int> taskCountsByStatus, required  List<RecentActivityItem> recentActivity}): _taskCountsByStatus = taskCountsByStatus,_recentActivity = recentActivity;
   factory _DashboardOrgSummary.fromJson(Map<String, dynamic> json) => _$DashboardOrgSummaryFromJson(json);
 
 @override final  String orgId;
@@ -514,16 +527,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardOrgSummary&&(identical(other.orgId, orgId) || other.orgId == orgId)&&(identical(other.orgName, orgName) || other.orgName == orgName)&&const DeepCollectionEquality().equals(other._taskCountsByStatus, _taskCountsByStatus)&&const DeepCollectionEquality().equals(other._recentActivity, _recentActivity));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardOrgSummary&&(identical(other.orgId, orgId) || other.orgId == orgId)&&(identical(other.orgName, orgName) || other.orgName == orgName)&&const DeepCollectionEquality().equals(other.taskCountsByStatus, _taskCountsByStatus)&&const DeepCollectionEquality().equals(other.recentActivity, _recentActivity));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,orgId,orgName,const DeepCollectionEquality().hash(_taskCountsByStatus),const DeepCollectionEquality().hash(_recentActivity));
+int get hashCode {
+    return Object.hash(runtimeType,orgId,orgName,const DeepCollectionEquality().hash(_taskCountsByStatus),const DeepCollectionEquality().hash(_recentActivity));
+}
 
 @override
 String toString() {
-  return 'DashboardOrgSummary(orgId: $orgId, orgName: $orgName, taskCountsByStatus: $taskCountsByStatus, recentActivity: $recentActivity)';
+    return 'DashboardOrgSummary(orgId: $orgId, orgName: $orgName, taskCountsByStatus: $taskCountsByStatus, recentActivity: $recentActivity)';
 }
 
 
@@ -581,16 +596,21 @@ $DashboardSummaryCopyWith<DashboardSummary> get copyWith => _$DashboardSummaryCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardSummary&&const DeepCollectionEquality().equals(other.orgs, orgs));
+  final _this = this as DashboardSummary;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardSummary&&const DeepCollectionEquality().equals(other.orgs, _this.orgs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(orgs));
+int get hashCode {
+  final _this = this as DashboardSummary;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.orgs));
+}
 
 @override
 String toString() {
-  return 'DashboardSummary(orgs: $orgs)';
+  final _this = this as DashboardSummary;
+  return 'DashboardSummary(orgs: ${_this.orgs})';
 }
 
 
@@ -619,7 +639,7 @@ class _$DashboardSummaryCopyWithImpl<$Res>
 /// Create a copy of DashboardSummary
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? orgs = null,}) {
-  return _then(_self.copyWith(
+  return _then(DashboardSummary(
 orgs: null == orgs ? _self.orgs : orgs // ignore: cast_nullable_to_non_nullable
 as List<DashboardOrgSummary>,
   ));
@@ -756,7 +776,7 @@ return $default(_that.orgs);case _:
 @JsonSerializable()
 
 class _DashboardSummary implements DashboardSummary {
-  const _DashboardSummary({required final  List<DashboardOrgSummary> orgs}): _orgs = orgs;
+  const _DashboardSummary({required  List<DashboardOrgSummary> orgs}): _orgs = orgs;
   factory _DashboardSummary.fromJson(Map<String, dynamic> json) => _$DashboardSummaryFromJson(json);
 
  final  List<DashboardOrgSummary> _orgs;
@@ -780,16 +800,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardSummary&&const DeepCollectionEquality().equals(other._orgs, _orgs));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardSummary&&const DeepCollectionEquality().equals(other.orgs, _orgs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_orgs));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_orgs));
+}
 
 @override
 String toString() {
-  return 'DashboardSummary(orgs: $orgs)';
+    return 'DashboardSummary(orgs: $orgs)';
 }
 
 

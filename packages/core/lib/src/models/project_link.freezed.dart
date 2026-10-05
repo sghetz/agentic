@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'project_link.dart';
@@ -9,6 +9,7 @@ part of 'project_link.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $ProjectLinkCopyWith<ProjectLink> get copyWith => _$ProjectLinkCopyWithImpl<Proj
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProjectLink&&(identical(other.id, id) || other.id == id)&&(identical(other.fromProjectId, fromProjectId) || other.fromProjectId == fromProjectId)&&(identical(other.toProjectId, toProjectId) || other.toProjectId == toProjectId)&&(identical(other.relation, relation) || other.relation == relation));
+  final _this = this as ProjectLink;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProjectLink&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.fromProjectId, _this.fromProjectId) || other.fromProjectId == _this.fromProjectId)&&(identical(other.toProjectId, _this.toProjectId) || other.toProjectId == _this.toProjectId)&&(identical(other.relation, _this.relation) || other.relation == _this.relation));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fromProjectId,toProjectId,relation);
+int get hashCode {
+  final _this = this as ProjectLink;
+  return Object.hash(runtimeType,_this.id,_this.fromProjectId,_this.toProjectId,_this.relation);
+}
 
 @override
 String toString() {
-  return 'ProjectLink(id: $id, fromProjectId: $fromProjectId, toProjectId: $toProjectId, relation: $relation)';
+  final _this = this as ProjectLink;
+  return 'ProjectLink(id: ${_this.id}, fromProjectId: ${_this.fromProjectId}, toProjectId: ${_this.toProjectId}, relation: ${_this.relation})';
 }
 
 
@@ -66,7 +72,7 @@ class _$ProjectLinkCopyWithImpl<$Res>
 /// Create a copy of ProjectLink
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fromProjectId = null,Object? toProjectId = null,Object? relation = null,}) {
-  return _then(_self.copyWith(
+  return _then(ProjectLink(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fromProjectId: null == fromProjectId ? _self.fromProjectId : fromProjectId // ignore: cast_nullable_to_non_nullable
 as String,toProjectId: null == toProjectId ? _self.toProjectId : toProjectId // ignore: cast_nullable_to_non_nullable
@@ -227,16 +233,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProjectLink&&(identical(other.id, id) || other.id == id)&&(identical(other.fromProjectId, fromProjectId) || other.fromProjectId == fromProjectId)&&(identical(other.toProjectId, toProjectId) || other.toProjectId == toProjectId)&&(identical(other.relation, relation) || other.relation == relation));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProjectLink&&(identical(other.id, id) || other.id == id)&&(identical(other.fromProjectId, fromProjectId) || other.fromProjectId == fromProjectId)&&(identical(other.toProjectId, toProjectId) || other.toProjectId == toProjectId)&&(identical(other.relation, relation) || other.relation == relation));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fromProjectId,toProjectId,relation);
+int get hashCode {
+    return Object.hash(runtimeType,id,fromProjectId,toProjectId,relation);
+}
 
 @override
 String toString() {
-  return 'ProjectLink(id: $id, fromProjectId: $fromProjectId, toProjectId: $toProjectId, relation: $relation)';
+    return 'ProjectLink(id: $id, fromProjectId: $fromProjectId, toProjectId: $toProjectId, relation: $relation)';
 }
 
 

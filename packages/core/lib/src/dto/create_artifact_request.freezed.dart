@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'create_artifact_request.dart';
@@ -9,6 +9,7 @@ part of 'create_artifact_request.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $CreateArtifactRequestCopyWith<CreateArtifactRequest> get copyWith => _$CreateAr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateArtifactRequest&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.uri, uri) || other.uri == uri));
+  final _this = this as CreateArtifactRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateArtifactRequest&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.uri, _this.uri) || other.uri == _this.uri));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,kind,uri);
+int get hashCode {
+  final _this = this as CreateArtifactRequest;
+  return Object.hash(runtimeType,_this.kind,_this.uri);
+}
 
 @override
 String toString() {
-  return 'CreateArtifactRequest(kind: $kind, uri: $uri)';
+  final _this = this as CreateArtifactRequest;
+  return 'CreateArtifactRequest(kind: ${_this.kind}, uri: ${_this.uri})';
 }
 
 
@@ -66,7 +72,7 @@ class _$CreateArtifactRequestCopyWithImpl<$Res>
 /// Create a copy of CreateArtifactRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? kind = null,Object? uri = null,}) {
-  return _then(_self.copyWith(
+  return _then(CreateArtifactRequest(
 kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as ArtifactKind,uri: null == uri ? _self.uri : uri // ignore: cast_nullable_to_non_nullable
 as String,
@@ -223,16 +229,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateArtifactRequest&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.uri, uri) || other.uri == uri));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateArtifactRequest&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.uri, uri) || other.uri == uri));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,kind,uri);
+int get hashCode {
+    return Object.hash(runtimeType,kind,uri);
+}
 
 @override
 String toString() {
-  return 'CreateArtifactRequest(kind: $kind, uri: $uri)';
+    return 'CreateArtifactRequest(kind: $kind, uri: $uri)';
 }
 
 

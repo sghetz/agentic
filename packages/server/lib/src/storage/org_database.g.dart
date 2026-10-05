@@ -609,6 +609,9 @@ class $ProjectLinksTable extends ProjectLinks
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES projects (id)',
+    ),
   );
   static const VerificationMeta _toProjectIdMeta = const VerificationMeta(
     'toProjectId',
@@ -620,6 +623,9 @@ class $ProjectLinksTable extends ProjectLinks
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES projects (id)',
+    ),
   );
   @override
   late final GeneratedColumnWithTypeConverter<LinkRelation, String> relation =
@@ -938,6 +944,9 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskRow> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES projects (id)',
+    ),
   );
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
@@ -1353,6 +1362,9 @@ class $TaskEventsTable extends TaskEvents
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tasks (id)',
+    ),
   );
   static const VerificationMeta _tsMeta = const VerificationMeta('ts');
   @override
@@ -1766,6 +1778,9 @@ class $ArtifactsTable extends Artifacts
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tasks (id)',
+    ),
   );
   @override
   late final GeneratedColumnWithTypeConverter<ArtifactKind, String> kind =
@@ -2204,6 +2219,30 @@ typedef $$ProjectsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$ProjectsTableReferences
+    extends BaseReferences<_$OrgDatabase, $ProjectsTable, ProjectRow> {
+  $$ProjectsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$TasksTable, List<TaskRow>> _tasksRefsTable(
+    _$OrgDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.tasks,
+    aliasName: 'projects__id__tasks__project_id',
+  );
+
+  $$TasksTableProcessedTableManager get tasksRefs {
+    final manager = $$TasksTableTableManager(
+      $_db,
+      $_db.tasks,
+    ).filter((f) => f.projectId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_tasksRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $$ProjectsTableFilterComposer
     extends Composer<_$OrgDatabase, $ProjectsTable> {
   $$ProjectsTableFilterComposer({
@@ -2258,6 +2297,31 @@ class $$ProjectsTableFilterComposer
     column: $table.archivedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> tasksRefs(
+    Expression<bool> Function($$TasksTableFilterComposer f) f,
+  ) {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.projectId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableFilterComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ProjectsTableOrderingComposer
@@ -2356,6 +2420,31 @@ class $$ProjectsTableAnnotationComposer
     column: $table.archivedAt,
     builder: (column) => column,
   );
+
+  Expression<T> tasksRefs<T extends Object>(
+    Expression<T> Function($$TasksTableAnnotationComposer a) f,
+  ) {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.projectId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ProjectsTableTableManager
@@ -2369,12 +2458,9 @@ class $$ProjectsTableTableManager
           $$ProjectsTableAnnotationComposer,
           $$ProjectsTableCreateCompanionBuilder,
           $$ProjectsTableUpdateCompanionBuilder,
-          (
-            ProjectRow,
-            BaseReferences<_$OrgDatabase, $ProjectsTable, ProjectRow>,
-          ),
+          (ProjectRow, $$ProjectsTableReferences),
           ProjectRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool tasksRefs})
         > {
   $$ProjectsTableTableManager(_$OrgDatabase db, $ProjectsTable table)
     : super(
@@ -2436,9 +2522,39 @@ class $$ProjectsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$ProjectsTable, ProjectRow>(table),
+                  $$ProjectsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({tasksRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (tasksRefs) db.tasks],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (tasksRefs)
+                    await $_getPrefetchedData<
+                      ProjectRow,
+                      $ProjectsTable,
+                      TaskRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ProjectsTableReferences
+                          ._tasksRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$ProjectsTableReferences(db, table, p0).tasksRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.projectId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -2453,9 +2569,9 @@ typedef $$ProjectsTableProcessedTableManager =
       $$ProjectsTableAnnotationComposer,
       $$ProjectsTableCreateCompanionBuilder,
       $$ProjectsTableUpdateCompanionBuilder,
-      (ProjectRow, BaseReferences<_$OrgDatabase, $ProjectsTable, ProjectRow>),
+      (ProjectRow, $$ProjectsTableReferences),
       ProjectRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool tasksRefs})
     >;
 typedef $$ProjectLinksTableCreateCompanionBuilder =
     ProjectLinksCompanion Function({
@@ -2474,6 +2590,45 @@ typedef $$ProjectLinksTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$ProjectLinksTableReferences
+    extends BaseReferences<_$OrgDatabase, $ProjectLinksTable, ProjectLinkRow> {
+  $$ProjectLinksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProjectsTable _fromProjectIdTable(_$OrgDatabase db) =>
+      db.projects.createAlias('project_links__from_project_id__projects__id');
+
+  $$ProjectsTableProcessedTableManager get fromProjectId {
+    final $_column = $_itemColumn<String>('from_project_id')!;
+
+    final manager = $$ProjectsTableTableManager(
+      $_db,
+      $_db.projects,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_fromProjectIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ProjectsTable _toProjectIdTable(_$OrgDatabase db) =>
+      db.projects.createAlias('project_links__to_project_id__projects__id');
+
+  $$ProjectsTableProcessedTableManager get toProjectId {
+    final $_column = $_itemColumn<String>('to_project_id')!;
+
+    final manager = $$ProjectsTableTableManager(
+      $_db,
+      $_db.projects,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_toProjectIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
 class $$ProjectLinksTableFilterComposer
     extends Composer<_$OrgDatabase, $ProjectLinksTable> {
   $$ProjectLinksTableFilterComposer({
@@ -2488,21 +2643,57 @@ class $$ProjectLinksTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get fromProjectId => $composableBuilder(
-    column: $table.fromProjectId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get toProjectId => $composableBuilder(
-    column: $table.toProjectId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnWithTypeConverterFilters<LinkRelation, LinkRelation, String>
   get relation => $composableBuilder(
     column: $table.relation,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  $$ProjectsTableFilterComposer get fromProjectId {
+    final $$ProjectsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fromProjectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableFilterComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ProjectsTableFilterComposer get toProjectId {
+    final $$ProjectsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.toProjectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableFilterComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ProjectLinksTableOrderingComposer
@@ -2519,20 +2710,56 @@ class $$ProjectLinksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get fromProjectId => $composableBuilder(
-    column: $table.fromProjectId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get toProjectId => $composableBuilder(
-    column: $table.toProjectId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get relation => $composableBuilder(
     column: $table.relation,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$ProjectsTableOrderingComposer get fromProjectId {
+    final $$ProjectsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fromProjectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableOrderingComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ProjectsTableOrderingComposer get toProjectId {
+    final $$ProjectsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.toProjectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableOrderingComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ProjectLinksTableAnnotationComposer
@@ -2547,18 +2774,54 @@ class $$ProjectLinksTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get fromProjectId => $composableBuilder(
-    column: $table.fromProjectId,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get toProjectId => $composableBuilder(
-    column: $table.toProjectId,
-    builder: (column) => column,
-  );
-
   GeneratedColumnWithTypeConverter<LinkRelation, String> get relation =>
       $composableBuilder(column: $table.relation, builder: (column) => column);
+
+  $$ProjectsTableAnnotationComposer get fromProjectId {
+    final $$ProjectsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fromProjectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ProjectsTableAnnotationComposer get toProjectId {
+    final $$ProjectsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.toProjectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ProjectLinksTableTableManager
@@ -2572,12 +2835,9 @@ class $$ProjectLinksTableTableManager
           $$ProjectLinksTableAnnotationComposer,
           $$ProjectLinksTableCreateCompanionBuilder,
           $$ProjectLinksTableUpdateCompanionBuilder,
-          (
-            ProjectLinkRow,
-            BaseReferences<_$OrgDatabase, $ProjectLinksTable, ProjectLinkRow>,
-          ),
+          (ProjectLinkRow, $$ProjectLinksTableReferences),
           ProjectLinkRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool fromProjectId, bool toProjectId})
         > {
   $$ProjectLinksTableTableManager(_$OrgDatabase db, $ProjectLinksTable table)
     : super(
@@ -2619,9 +2879,72 @@ class $$ProjectLinksTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$ProjectLinksTable, ProjectLinkRow>(table),
+                  $$ProjectLinksTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({fromProjectId = false, toProjectId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (fromProjectId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.fromProjectId,
+                                    referencedTable:
+                                        $$ProjectLinksTableReferences
+                                            ._fromProjectIdTable(db),
+                                    referencedColumn:
+                                        $$ProjectLinksTableReferences
+                                            ._fromProjectIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (toProjectId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.toProjectId,
+                                    referencedTable:
+                                        $$ProjectLinksTableReferences
+                                            ._toProjectIdTable(db),
+                                    referencedColumn:
+                                        $$ProjectLinksTableReferences
+                                            ._toProjectIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
         ),
       );
 }
@@ -2636,12 +2959,9 @@ typedef $$ProjectLinksTableProcessedTableManager =
       $$ProjectLinksTableAnnotationComposer,
       $$ProjectLinksTableCreateCompanionBuilder,
       $$ProjectLinksTableUpdateCompanionBuilder,
-      (
-        ProjectLinkRow,
-        BaseReferences<_$OrgDatabase, $ProjectLinksTable, ProjectLinkRow>,
-      ),
+      (ProjectLinkRow, $$ProjectLinksTableReferences),
       ProjectLinkRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool fromProjectId, bool toProjectId})
     >;
 typedef $$TasksTableCreateCompanionBuilder =
     TasksCompanion Function({
@@ -2664,6 +2984,64 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$TasksTableReferences
+    extends BaseReferences<_$OrgDatabase, $TasksTable, TaskRow> {
+  $$TasksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProjectsTable _projectIdTable(_$OrgDatabase db) =>
+      db.projects.createAlias('tasks__project_id__projects__id');
+
+  $$ProjectsTableProcessedTableManager get projectId {
+    final $_column = $_itemColumn<String>('project_id')!;
+
+    final manager = $$ProjectsTableTableManager(
+      $_db,
+      $_db.projects,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_projectIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$TaskEventsTable, List<TaskEventRow>>
+  _taskEventsRefsTable(_$OrgDatabase db) => MultiTypedResultKey.fromTable(
+    db.taskEvents,
+    aliasName: 'tasks__id__task_events__task_id',
+  );
+
+  $$TaskEventsTableProcessedTableManager get taskEventsRefs {
+    final manager = $$TaskEventsTableTableManager(
+      $_db,
+      $_db.taskEvents,
+    ).filter((f) => f.taskId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_taskEventsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$ArtifactsTable, List<ArtifactRow>>
+  _artifactsRefsTable(_$OrgDatabase db) => MultiTypedResultKey.fromTable(
+    db.artifacts,
+    aliasName: 'tasks__id__artifacts__task_id',
+  );
+
+  $$ArtifactsTableProcessedTableManager get artifactsRefs {
+    final manager = $$ArtifactsTableTableManager(
+      $_db,
+      $_db.artifacts,
+    ).filter((f) => f.taskId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_artifactsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $$TasksTableFilterComposer extends Composer<_$OrgDatabase, $TasksTable> {
   $$TasksTableFilterComposer({
     required super.$db,
@@ -2674,11 +3052,6 @@ class $$TasksTableFilterComposer extends Composer<_$OrgDatabase, $TasksTable> {
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get projectId => $composableBuilder(
-    column: $table.projectId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2702,6 +3075,79 @@ class $$TasksTableFilterComposer extends Composer<_$OrgDatabase, $TasksTable> {
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$ProjectsTableFilterComposer get projectId {
+    final $$ProjectsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.projectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableFilterComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> taskEventsRefs(
+    Expression<bool> Function($$TaskEventsTableFilterComposer f) f,
+  ) {
+    final $$TaskEventsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.taskEvents,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TaskEventsTableFilterComposer(
+            $db: $db,
+            $table: $db.taskEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> artifactsRefs(
+    Expression<bool> Function($$ArtifactsTableFilterComposer f) f,
+  ) {
+    final $$ArtifactsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.artifacts,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ArtifactsTableFilterComposer(
+            $db: $db,
+            $table: $db.artifacts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$TasksTableOrderingComposer
@@ -2715,11 +3161,6 @@ class $$TasksTableOrderingComposer
   });
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get projectId => $composableBuilder(
-    column: $table.projectId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2742,6 +3183,29 @@ class $$TasksTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$ProjectsTableOrderingComposer get projectId {
+    final $$ProjectsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.projectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableOrderingComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TasksTableAnnotationComposer
@@ -2755,9 +3219,6 @@ class $$TasksTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get projectId =>
-      $composableBuilder(column: $table.projectId, builder: (column) => column);
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
@@ -2773,6 +3234,79 @@ class $$TasksTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$ProjectsTableAnnotationComposer get projectId {
+    final $$ProjectsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.projectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> taskEventsRefs<T extends Object>(
+    Expression<T> Function($$TaskEventsTableAnnotationComposer a) f,
+  ) {
+    final $$TaskEventsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.taskEvents,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TaskEventsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.taskEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> artifactsRefs<T extends Object>(
+    Expression<T> Function($$ArtifactsTableAnnotationComposer a) f,
+  ) {
+    final $$ArtifactsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.artifacts,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ArtifactsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.artifacts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$TasksTableTableManager
@@ -2786,9 +3320,13 @@ class $$TasksTableTableManager
           $$TasksTableAnnotationComposer,
           $$TasksTableCreateCompanionBuilder,
           $$TasksTableUpdateCompanionBuilder,
-          (TaskRow, BaseReferences<_$OrgDatabase, $TasksTable, TaskRow>),
+          (TaskRow, $$TasksTableReferences),
           TaskRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({
+            bool projectId,
+            bool taskEventsRefs,
+            bool artifactsRefs,
+          })
         > {
   $$TasksTableTableManager(_$OrgDatabase db, $TasksTable table)
     : super(
@@ -2838,9 +3376,105 @@ class $$TasksTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$TasksTable, TaskRow>(table),
+                  $$TasksTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({
+                projectId = false,
+                taskEventsRefs = false,
+                artifactsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (taskEventsRefs) db.taskEvents,
+                    if (artifactsRefs) db.artifacts,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (projectId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.projectId,
+                                    referencedTable: $$TasksTableReferences
+                                        ._projectIdTable(db),
+                                    referencedColumn: $$TasksTableReferences
+                                        ._projectIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (taskEventsRefs)
+                        await $_getPrefetchedData<
+                          TaskRow,
+                          $TasksTable,
+                          TaskEventRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TasksTableReferences
+                              ._taskEventsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TasksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).taskEventsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.taskId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (artifactsRefs)
+                        await $_getPrefetchedData<
+                          TaskRow,
+                          $TasksTable,
+                          ArtifactRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TasksTableReferences
+                              ._artifactsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TasksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).artifactsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.taskId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
         ),
       );
 }
@@ -2855,9 +3489,13 @@ typedef $$TasksTableProcessedTableManager =
       $$TasksTableAnnotationComposer,
       $$TasksTableCreateCompanionBuilder,
       $$TasksTableUpdateCompanionBuilder,
-      (TaskRow, BaseReferences<_$OrgDatabase, $TasksTable, TaskRow>),
+      (TaskRow, $$TasksTableReferences),
       TaskRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({
+        bool projectId,
+        bool taskEventsRefs,
+        bool artifactsRefs,
+      })
     >;
 typedef $$TaskEventsTableCreateCompanionBuilder =
     TaskEventsCompanion Function({
@@ -2880,6 +3518,28 @@ typedef $$TaskEventsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$TaskEventsTableReferences
+    extends BaseReferences<_$OrgDatabase, $TaskEventsTable, TaskEventRow> {
+  $$TaskEventsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $TasksTable _taskIdTable(_$OrgDatabase db) =>
+      db.tasks.createAlias('task_events__task_id__tasks__id');
+
+  $$TasksTableProcessedTableManager get taskId {
+    final $_column = $_itemColumn<String>('task_id')!;
+
+    final manager = $$TasksTableTableManager(
+      $_db,
+      $_db.tasks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_taskIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
 class $$TaskEventsTableFilterComposer
     extends Composer<_$OrgDatabase, $TaskEventsTable> {
   $$TaskEventsTableFilterComposer({
@@ -2891,11 +3551,6 @@ class $$TaskEventsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get taskId => $composableBuilder(
-    column: $table.taskId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2919,6 +3574,29 @@ class $$TaskEventsTableFilterComposer
     column: $table.payloadJson,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$TasksTableFilterComposer get taskId {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableFilterComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TaskEventsTableOrderingComposer
@@ -2932,11 +3610,6 @@ class $$TaskEventsTableOrderingComposer
   });
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get taskId => $composableBuilder(
-    column: $table.taskId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2959,6 +3632,29 @@ class $$TaskEventsTableOrderingComposer
     column: $table.payloadJson,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$TasksTableOrderingComposer get taskId {
+    final $$TasksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableOrderingComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TaskEventsTableAnnotationComposer
@@ -2973,9 +3669,6 @@ class $$TaskEventsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get taskId =>
-      $composableBuilder(column: $table.taskId, builder: (column) => column);
-
   GeneratedColumn<DateTime> get ts =>
       $composableBuilder(column: $table.ts, builder: (column) => column);
 
@@ -2989,6 +3682,29 @@ class $$TaskEventsTableAnnotationComposer
     column: $table.payloadJson,
     builder: (column) => column,
   );
+
+  $$TasksTableAnnotationComposer get taskId {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TaskEventsTableTableManager
@@ -3002,12 +3718,9 @@ class $$TaskEventsTableTableManager
           $$TaskEventsTableAnnotationComposer,
           $$TaskEventsTableCreateCompanionBuilder,
           $$TaskEventsTableUpdateCompanionBuilder,
-          (
-            TaskEventRow,
-            BaseReferences<_$OrgDatabase, $TaskEventsTable, TaskEventRow>,
-          ),
+          (TaskEventRow, $$TaskEventsTableReferences),
           TaskEventRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool taskId})
         > {
   $$TaskEventsTableTableManager(_$OrgDatabase db, $TaskEventsTable table)
     : super(
@@ -3057,9 +3770,54 @@ class $$TaskEventsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$TaskEventsTable, TaskEventRow>(table),
+                  $$TaskEventsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({taskId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (taskId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.taskId,
+                                referencedTable: $$TaskEventsTableReferences
+                                    ._taskIdTable(db),
+                                referencedColumn: $$TaskEventsTableReferences
+                                    ._taskIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -3074,12 +3832,9 @@ typedef $$TaskEventsTableProcessedTableManager =
       $$TaskEventsTableAnnotationComposer,
       $$TaskEventsTableCreateCompanionBuilder,
       $$TaskEventsTableUpdateCompanionBuilder,
-      (
-        TaskEventRow,
-        BaseReferences<_$OrgDatabase, $TaskEventsTable, TaskEventRow>,
-      ),
+      (TaskEventRow, $$TaskEventsTableReferences),
       TaskEventRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool taskId})
     >;
 typedef $$ArtifactsTableCreateCompanionBuilder =
     ArtifactsCompanion Function({
@@ -3102,6 +3857,28 @@ typedef $$ArtifactsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$ArtifactsTableReferences
+    extends BaseReferences<_$OrgDatabase, $ArtifactsTable, ArtifactRow> {
+  $$ArtifactsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $TasksTable _taskIdTable(_$OrgDatabase db) =>
+      db.tasks.createAlias('artifacts__task_id__tasks__id');
+
+  $$TasksTableProcessedTableManager get taskId {
+    final $_column = $_itemColumn<String>('task_id')!;
+
+    final manager = $$TasksTableTableManager(
+      $_db,
+      $_db.tasks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_taskIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
 class $$ArtifactsTableFilterComposer
     extends Composer<_$OrgDatabase, $ArtifactsTable> {
   $$ArtifactsTableFilterComposer({
@@ -3113,11 +3890,6 @@ class $$ArtifactsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get taskId => $composableBuilder(
-    column: $table.taskId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3141,6 +3913,29 @@ class $$ArtifactsTableFilterComposer
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$TasksTableFilterComposer get taskId {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableFilterComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ArtifactsTableOrderingComposer
@@ -3154,11 +3949,6 @@ class $$ArtifactsTableOrderingComposer
   });
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get taskId => $composableBuilder(
-    column: $table.taskId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3181,6 +3971,29 @@ class $$ArtifactsTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$TasksTableOrderingComposer get taskId {
+    final $$TasksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableOrderingComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ArtifactsTableAnnotationComposer
@@ -3195,9 +4008,6 @@ class $$ArtifactsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get taskId =>
-      $composableBuilder(column: $table.taskId, builder: (column) => column);
-
   GeneratedColumnWithTypeConverter<ArtifactKind, String> get kind =>
       $composableBuilder(column: $table.kind, builder: (column) => column);
 
@@ -3209,6 +4019,29 @@ class $$ArtifactsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$TasksTableAnnotationComposer get taskId {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ArtifactsTableTableManager
@@ -3222,12 +4055,9 @@ class $$ArtifactsTableTableManager
           $$ArtifactsTableAnnotationComposer,
           $$ArtifactsTableCreateCompanionBuilder,
           $$ArtifactsTableUpdateCompanionBuilder,
-          (
-            ArtifactRow,
-            BaseReferences<_$OrgDatabase, $ArtifactsTable, ArtifactRow>,
-          ),
+          (ArtifactRow, $$ArtifactsTableReferences),
           ArtifactRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool taskId})
         > {
   $$ArtifactsTableTableManager(_$OrgDatabase db, $ArtifactsTable table)
     : super(
@@ -3277,9 +4107,54 @@ class $$ArtifactsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$ArtifactsTable, ArtifactRow>(table),
+                  $$ArtifactsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({taskId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (taskId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.taskId,
+                                referencedTable: $$ArtifactsTableReferences
+                                    ._taskIdTable(db),
+                                referencedColumn: $$ArtifactsTableReferences
+                                    ._taskIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -3294,12 +4169,9 @@ typedef $$ArtifactsTableProcessedTableManager =
       $$ArtifactsTableAnnotationComposer,
       $$ArtifactsTableCreateCompanionBuilder,
       $$ArtifactsTableUpdateCompanionBuilder,
-      (
-        ArtifactRow,
-        BaseReferences<_$OrgDatabase, $ArtifactsTable, ArtifactRow>,
-      ),
+      (ArtifactRow, $$ArtifactsTableReferences),
       ArtifactRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool taskId})
     >;
 
 class $OrgDatabaseManager {

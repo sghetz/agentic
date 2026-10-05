@@ -2,9 +2,14 @@ name: agentic
 publish_to: none
 
 environment:
-  sdk: ^3.8.0
+  sdk: ^3.9.0
 
 workspace:
   - packages/core
   - packages/server
-  # - packages/app     # added in slice 4
+  # packages/app is intentionally NOT a workspace member: Flutter's bundled
+  # flutter_test pins test_api/matcher to exact internal versions that
+  # don't line up with any published `test` release, which makes a single
+  # unified workspace lockfile across app + core/server's codegen tooling
+  # (freezed, drift_dev) unsatisfiable. app depends on core via a plain
+  # path dependency instead and resolves independently.

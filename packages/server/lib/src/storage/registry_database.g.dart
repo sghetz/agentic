@@ -844,7 +844,16 @@ class $$OrganizationsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$OrganizationsTable, OrganizationRow>(table),
+                  BaseReferences<
+                    _$RegistryDatabase,
+                    $OrganizationsTable,
+                    OrganizationRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -987,7 +996,16 @@ class $$SettingsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$SettingsTable, SettingRow>(table),
+                  BaseReferences<
+                    _$RegistryDatabase,
+                    $SettingsTable,
+                    SettingRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),

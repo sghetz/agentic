@@ -70,8 +70,17 @@ manifests/              example project manifests (YAML)
 (Update as they are created.)
 
 ```
-dart pub get                                  # from workspace root
+dart pub get                                  # from workspace root (core + server only)
 dart run packages/server/bin/server.dart      # run backend
 dart test packages/core packages/server       # backend tests
+cd packages/app && flutter pub get            # app deps (resolved independently, see note below)
 cd packages/app && flutter run -d macos       # run UI
+cd packages/app && flutter test               # UI widget tests
 ```
+
+`packages/app` is intentionally **not** a member of the root Dart pub workspace: Flutter's
+bundled `flutter_test` pins `test_api`/`matcher` to exact internal versions that don't line up
+with any published `test` release, which makes one unified workspace lockfile across the app
+and core/server's codegen tooling (`freezed`, `drift_dev`) unsatisfiable. `packages/app` depends
+on `core` via a plain relative path dependency and resolves independently with its own
+`pubspec.lock`.

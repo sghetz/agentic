@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'task_event.dart';
@@ -9,6 +9,7 @@ part of 'task_event.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $TaskEventCopyWith<TaskEvent> get copyWith => _$TaskEventCopyWithImpl<TaskEvent>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TaskEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.taskId, taskId) || other.taskId == taskId)&&(identical(other.ts, ts) || other.ts == ts)&&(identical(other.actor, actor) || other.actor == actor)&&(identical(other.eventType, eventType) || other.eventType == eventType)&&const DeepCollectionEquality().equals(other.payload, payload));
+  final _this = this as TaskEvent;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TaskEvent&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.taskId, _this.taskId) || other.taskId == _this.taskId)&&(identical(other.ts, _this.ts) || other.ts == _this.ts)&&(identical(other.actor, _this.actor) || other.actor == _this.actor)&&(identical(other.eventType, _this.eventType) || other.eventType == _this.eventType)&&const DeepCollectionEquality().equals(other.payload, _this.payload));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,taskId,ts,actor,eventType,const DeepCollectionEquality().hash(payload));
+int get hashCode {
+  final _this = this as TaskEvent;
+  return Object.hash(runtimeType,_this.id,_this.taskId,_this.ts,_this.actor,_this.eventType,const DeepCollectionEquality().hash(_this.payload));
+}
 
 @override
 String toString() {
-  return 'TaskEvent(id: $id, taskId: $taskId, ts: $ts, actor: $actor, eventType: $eventType, payload: $payload)';
+  final _this = this as TaskEvent;
+  return 'TaskEvent(id: ${_this.id}, taskId: ${_this.taskId}, ts: ${_this.ts}, actor: ${_this.actor}, eventType: ${_this.eventType}, payload: ${_this.payload})';
 }
 
 
@@ -66,7 +72,7 @@ class _$TaskEventCopyWithImpl<$Res>
 /// Create a copy of TaskEvent
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? taskId = null,Object? ts = null,Object? actor = null,Object? eventType = null,Object? payload = null,}) {
-  return _then(_self.copyWith(
+  return _then(TaskEvent(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
 as String,ts: null == ts ? _self.ts : ts // ignore: cast_nullable_to_non_nullable
@@ -208,7 +214,7 @@ return $default(_that.id,_that.taskId,_that.ts,_that.actor,_that.eventType,_that
 @JsonSerializable()
 
 class _TaskEvent implements TaskEvent {
-  const _TaskEvent({required this.id, required this.taskId, required this.ts, @ActorConverter() required this.actor, required this.eventType, required final  Map<String, Object?> payload}): _payload = payload;
+  const _TaskEvent({required this.id, required this.taskId, required this.ts, @ActorConverter() required this.actor, required this.eventType, required  Map<String, Object?> payload}): _payload = payload;
   factory _TaskEvent.fromJson(Map<String, dynamic> json) => _$TaskEventFromJson(json);
 
 @override final  String id;
@@ -237,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TaskEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.taskId, taskId) || other.taskId == taskId)&&(identical(other.ts, ts) || other.ts == ts)&&(identical(other.actor, actor) || other.actor == actor)&&(identical(other.eventType, eventType) || other.eventType == eventType)&&const DeepCollectionEquality().equals(other._payload, _payload));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TaskEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.taskId, taskId) || other.taskId == taskId)&&(identical(other.ts, ts) || other.ts == ts)&&(identical(other.actor, actor) || other.actor == actor)&&(identical(other.eventType, eventType) || other.eventType == eventType)&&const DeepCollectionEquality().equals(other.payload, _payload));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,taskId,ts,actor,eventType,const DeepCollectionEquality().hash(_payload));
+int get hashCode {
+    return Object.hash(runtimeType,id,taskId,ts,actor,eventType,const DeepCollectionEquality().hash(_payload));
+}
 
 @override
 String toString() {
-  return 'TaskEvent(id: $id, taskId: $taskId, ts: $ts, actor: $actor, eventType: $eventType, payload: $payload)';
+    return 'TaskEvent(id: $id, taskId: $taskId, ts: $ts, actor: $actor, eventType: $eventType, payload: $payload)';
 }
 
 

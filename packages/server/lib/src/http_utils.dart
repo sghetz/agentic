@@ -43,6 +43,8 @@ Future<Response> guarded(Future<Response> Function() action) async {
     return notFoundResponse('Project ${e.id} not found');
   } on TaskNotFound catch (e) {
     return notFoundResponse('Task ${e.id} not found');
+  } on ConversationNotFound catch (e) {
+    return notFoundResponse('Conversation ${e.id} not found');
   } on CrossOrgLinkRejected catch (e) {
     return notFoundResponse('Project ${e.toProjectId} not found');
   } on DuplicateOrgSlug catch (e) {

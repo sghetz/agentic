@@ -22,6 +22,14 @@ class TaskNotFound implements Exception {
   String toString() => 'TaskNotFound($id)';
 }
 
+class ConversationNotFound implements Exception {
+  ConversationNotFound(this.id);
+  final String id;
+
+  @override
+  String toString() => 'ConversationNotFound($id)';
+}
+
 class DuplicateProjectSlug implements Exception {
   DuplicateProjectSlug(this.slug);
   final String slug;
@@ -516,6 +524,101 @@ class OrgStore {
     return rows.map(_artifactToModel).toList();
   }
 
+  // ---- Conversations ----
+
+  /// Returns the one conversation for this (projectId, channel) scope,
+  /// creating it if it doesn't exist yet. Channels are a fixed set the app
+  /// knows about (General + one per agent role) rather than user-created
+  /// entities, so callers never create a conversation explicitly -- they
+  /// just ask for the one at a given scope.
+  Future<core.Conversation> getOrCreateConversation({
+    String? projectId,
+    required core.ChatChannel channel,
+  }) async {
+    if (projectId != null && await getProject(projectId) == null) {
+      throw ProjectNotFound(projectId);
+    }
+
+    final channelStr = channel.toStorageString();
+    return _db.transaction(() async {
+      final select = _db.select(_db.conversations)
+        ..where((c) => c.channel.equals(channelStr))
+        ..where(
+          (c) => projectId == null
+              ? c.projectId.isNull()
+              : c.projectId.equals(projectId),
+        );
+      final existing = await select.getSingleOrNull();
+      if (existing != null) return _conversationToModel(existing);
+
+      final id = core.newId();
+      final now = DateTime.now().toUtc();
+      await _db
+          .into(_db.conversations)
+          .insert(
+            ConversationsCompanion.insert(
+              id: id,
+              projectId: Value(projectId),
+              channel: channelStr,
+              createdAt: now,
+            ),
+          );
+      return core.Conversation(
+        id: id,
+        projectId: projectId,
+        channel: channel,
+        createdAt: now,
+      );
+    });
+  }
+
+  Future<core.Conversation?> getConversation(String id) async {
+    final row = await (_db.select(
+      _db.conversations,
+    )..where((c) => c.id.equals(id))).getSingleOrNull();
+    return row == null ? null : _conversationToModel(row);
+  }
+
+  Future<core.ChatMessage> postChatMessage(
+    String conversationId,
+    core.CreateChatMessageRequest request,
+  ) async {
+    if (await getConversation(conversationId) == null) {
+      throw ConversationNotFound(conversationId);
+    }
+
+    final id = core.newId();
+    final now = DateTime.now().toUtc();
+    const sender = core.Actor.user();
+    await _db
+        .into(_db.chatMessages)
+        .insert(
+          ChatMessagesCompanion.insert(
+            id: id,
+            conversationId: conversationId,
+            ts: now,
+            sender: sender.toStorageString(),
+            content: request.content,
+          ),
+        );
+    return core.ChatMessage(
+      id: id,
+      conversationId: conversationId,
+      ts: now,
+      sender: sender,
+      content: request.content,
+    );
+  }
+
+  Future<List<core.ChatMessage>> listChatMessages(String conversationId) async {
+    final rows =
+        await (_db.select(_db.chatMessages)
+              ..where((m) => m.conversationId.equals(conversationId))
+              ..orderBy([(m) => OrderingTerm.asc(m.ts)]))
+            .get();
+    return rows.map(_chatMessageToModel).toList();
+  }
+
   // ---- row <-> core model mapping ----
 
   core.Project _projectToModel(ProjectRow row) => core.Project(
@@ -566,5 +669,22 @@ class OrgStore {
     content: row.content,
     version: row.version,
     createdAt: row.createdAt,
+  );
+
+  core.Conversation _conversationToModel(ConversationRow row) =>
+      core.Conversation(
+        id: row.id,
+        projectId: row.projectId,
+        channel: core.ChatChannel.parse(row.channel),
+        claudeSessionId: row.claudeSessionId,
+        createdAt: row.createdAt,
+      );
+
+  core.ChatMessage _chatMessageToModel(ChatMessageRow row) => core.ChatMessage(
+    id: row.id,
+    conversationId: row.conversationId,
+    ts: row.ts,
+    sender: core.Actor.parse(row.sender),
+    content: row.content,
   );
 }

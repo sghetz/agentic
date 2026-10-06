@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../ui/chat/chat_screen.dart';
 import '../ui/dashboard/dashboard_screen.dart';
 import '../ui/shell/app_shell.dart';
 import '../ui/tasks/task_detail_screen.dart';
@@ -28,6 +29,10 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: '/dashboard',
             builder: (context, state) => const DashboardScreen(),
+          ),
+          GoRoute(
+            path: '/chat',
+            builder: (context, state) => const ChatScreen(),
           ),
         ],
       ),

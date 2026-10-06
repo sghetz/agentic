@@ -4,6 +4,7 @@ import 'package:shelf_router/shelf_router.dart';
 
 import 'app_context.dart';
 import 'routes/artifacts_routes.dart';
+import 'routes/conversations_routes.dart';
 import 'routes/dashboard_routes.dart';
 import 'routes/health_check_routes.dart';
 import 'routes/health_routes.dart';
@@ -25,6 +26,7 @@ Router buildRouter(AppContext ctx) {
   registerArtifactsRoutes(router, ctx);
   registerDashboardRoutes(router, ctx);
   registerHealthCheckRoutes(router, ctx);
+  registerConversationsRoutes(router, ctx);
 
   return router;
 }

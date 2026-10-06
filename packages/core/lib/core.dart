@@ -1,4 +1,5 @@
 export 'src/actor.dart';
+export 'src/chat_channel.dart';
 export 'src/id.dart';
 export 'src/task_state_machine.dart';
 
@@ -13,6 +14,8 @@ export 'src/enums/task_event_type.dart';
 export 'src/enums/task_status.dart';
 
 export 'src/models/artifact.dart';
+export 'src/models/chat_message.dart';
+export 'src/models/conversation.dart';
 export 'src/models/health_fix_result.dart';
 export 'src/models/health_report.dart';
 export 'src/models/organization.dart';
@@ -23,6 +26,7 @@ export 'src/models/task.dart';
 export 'src/models/task_event.dart';
 
 export 'src/dto/create_artifact_request.dart';
+export 'src/dto/create_chat_message_request.dart';
 export 'src/dto/create_organization_request.dart';
 export 'src/dto/create_project_link_request.dart';
 export 'src/dto/create_project_request.dart';

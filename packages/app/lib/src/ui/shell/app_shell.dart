@@ -51,12 +51,18 @@ class _MainTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDashboard = currentPath.startsWith('/dashboard');
+    final isChat = currentPath.startsWith('/chat');
     return Row(
       children: [
         _TabButton(
           label: 'Tasks',
-          selected: !isDashboard,
+          selected: !isDashboard && !isChat,
           onTap: () => context.go('/tasks'),
+        ),
+        _TabButton(
+          label: 'Chat',
+          selected: isChat,
+          onTap: () => context.go('/chat'),
         ),
         _TabButton(
           label: 'Dashboard',

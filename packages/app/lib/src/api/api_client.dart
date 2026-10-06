@@ -334,6 +334,55 @@ class ApiClient {
     return core.HealthFixResult.fromJson(body! as Map<String, Object?>);
   }
 
+  // ---- Conversations ----
+
+  /// Fetches the one conversation for a (projectId, channel) scope,
+  /// creating it server-side the first time it's opened. `channel` is
+  /// `"general"` or `"agent:<role>"`; omit `projectId` for the org-level
+  /// scope.
+  Future<core.Conversation> getOrCreateConversation(
+    String orgId, {
+    String? projectId,
+    required String channel,
+  }) async {
+    final body = await _send(
+      'GET',
+      _uri('/orgs/$orgId/conversations', {
+        'channel': channel,
+        'projectId': ?projectId,
+      }),
+    );
+    return core.Conversation.fromJson(body! as Map<String, Object?>);
+  }
+
+  Future<List<core.ChatMessage>> listChatMessages(
+    String orgId,
+    String conversationId,
+  ) async {
+    final body =
+        await _send(
+              'GET',
+              _uri('/orgs/$orgId/conversations/$conversationId/messages'),
+            )
+            as List;
+    return body
+        .map((e) => core.ChatMessage.fromJson(e as Map<String, Object?>))
+        .toList();
+  }
+
+  Future<core.ChatMessage> postChatMessage(
+    String orgId,
+    String conversationId,
+    core.CreateChatMessageRequest request,
+  ) async {
+    final body = await _send(
+      'POST',
+      _uri('/orgs/$orgId/conversations/$conversationId/messages'),
+      json: request.toJson(),
+    );
+    return core.ChatMessage.fromJson(body! as Map<String, Object?>);
+  }
+
   // ---- Dashboard ----
 
   Future<core.DashboardSummary> dashboard() async {

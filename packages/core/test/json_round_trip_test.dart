@@ -141,6 +141,33 @@ void main() {
       expect(HealthReport.fromJson(report.toJson()), report);
     });
 
+    test('HealthReport with a diagnosis attached', () {
+      final report = HealthReport(
+        status: HealthCheckStepStatus.failed,
+        steps: const [
+          HealthCheckStep(
+            name: 'pub_get',
+            status: HealthCheckStepStatus.failed,
+            durationMs: 346,
+            output: 'SDK version solving failed',
+          ),
+        ],
+        startedAt: DateTime.utc(2026, 1, 1, 12),
+        finishedAt: DateTime.utc(2026, 1, 1, 12, 1),
+        diagnosis: const FailureDiagnosis(
+          category: FailureDiagnosisCategory.sdkMismatch,
+          summary: 'The pubspec SDK constraint predates null safety.',
+          suggestedFix: "Update the sdk constraint to '>=2.12.0 <4.0.0'.",
+        ),
+      );
+      final roundTripped = HealthReport.fromJson(report.toJson());
+      expect(roundTripped, report);
+      expect(
+        roundTripped.diagnosis!.category,
+        FailureDiagnosisCategory.sdkMismatch,
+      );
+    });
+
     test('DashboardSummary with enum-keyed map and nested activity', () {
       final summary = DashboardSummary(
         orgs: [

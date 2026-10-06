@@ -24,7 +24,8 @@ by hand, and browse any task's history by date.
 - Project manifest format (YAML) and project onboarding flow (clone, detect, first build).
 - FVM integration; deterministic pipeline; sequential build queue.
 - Health Reports stored as artifacts; status shown per project in the UI.
-- dartantic_ai introduced for failure diagnosis; Claude Code subprocess for trivial fixes on a branch.
+- Claude Code CLI non-interactive introduced for failure diagnosis (structured JSON output, no
+  tool access) and for trivial fixes on a branch.
 
 **Done when**: one click checks all projects and failures come with a diagnosis.
 

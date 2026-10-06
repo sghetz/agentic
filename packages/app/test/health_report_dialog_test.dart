@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 core.Artifact _reportArtifact({
   required int version,
   required core.HealthCheckStepStatus status,
+  core.FailureDiagnosis? diagnosis,
 }) {
   final report = core.HealthReport(
     status: status,
@@ -32,6 +33,7 @@ core.Artifact _reportArtifact({
     ],
     startedAt: DateTime.utc(2026, 1, 1),
     finishedAt: DateTime.utc(2026, 1, 1, 0, 1),
+    diagnosis: diagnosis,
   );
   return core.Artifact(
     id: 'artifact-$version',
@@ -149,5 +151,49 @@ void main() {
 
     expect(client.runCount, 1);
     expect(find.textContaining('v1'), findsOneWidget);
+  });
+
+  testWidgets('shows the diagnosis when a report has one', (tester) async {
+    final client = _FakeApiClient([
+      _reportArtifact(
+        version: 1,
+        status: core.HealthCheckStepStatus.failed,
+        diagnosis: const core.FailureDiagnosis(
+          category: core.FailureDiagnosisCategory.sdkMismatch,
+          summary: 'Pre-null-safety SDK constraint.',
+          suggestedFix: "Update the sdk constraint to '>=2.12.0 <4.0.0'.",
+        ),
+      ),
+    ]);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [apiClientProvider.overrideWithValue(client)],
+        child: MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => showHealthReportDialog(
+                  context,
+                  orgId: 'org-1',
+                  projectId: 'proj-1',
+                  projectName: 'Example App',
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('v1'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('SDK mismatch'), findsOneWidget);
+    expect(find.text('Pre-null-safety SDK constraint.'), findsOneWidget);
+    expect(find.textContaining('>=2.12.0 <4.0.0'), findsOneWidget);
   });
 }

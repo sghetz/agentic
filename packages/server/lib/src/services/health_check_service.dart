@@ -5,6 +5,7 @@ import 'package:core/core.dart' as core;
 
 import '../config.dart';
 import '../repositories/org_store.dart';
+import 'failure_diagnosis_service.dart';
 import 'flutter_version_detector.dart';
 import 'git_service.dart';
 import 'health_runner.dart';
@@ -21,14 +22,17 @@ class HealthCheckService {
     required GitService gitService,
     required FlutterVersionDetector detector,
     required HealthRunner runner,
+    required FailureDiagnosisService diagnosisService,
   }) : _gitService = gitService,
        _detector = detector,
-       _runner = runner;
+       _runner = runner,
+       _diagnosisService = diagnosisService;
 
   final AgenticPaths paths;
   final GitService _gitService;
   final FlutterVersionDetector _detector;
   final HealthRunner _runner;
+  final FailureDiagnosisService _diagnosisService;
 
   Future<void> _queueTail = Future.value();
 
@@ -77,10 +81,17 @@ class HealthCheckService {
       );
     }
 
-    final report = await _runner.run(
-      targetPath,
-      flutterVersion: detectedVersion,
-    );
+    var report = await _runner.run(targetPath, flutterVersion: detectedVersion);
+
+    if (report.status == core.HealthCheckStepStatus.failed) {
+      final failedStep = report.steps.firstWhere(
+        (s) => s.status == core.HealthCheckStepStatus.failed,
+      );
+      final diagnosis = await _diagnosisService.diagnose(failedStep);
+      if (diagnosis != null) {
+        report = report.copyWith(diagnosis: diagnosis);
+      }
+    }
 
     return orgStore.createProjectArtifact(
       project.id,

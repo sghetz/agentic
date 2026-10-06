@@ -28,6 +28,31 @@ const _$HealthCheckStepStatusEnumMap = {
   HealthCheckStepStatus.skipped: 'skipped',
 };
 
+_FailureDiagnosis _$FailureDiagnosisFromJson(Map<String, dynamic> json) =>
+    _FailureDiagnosis(
+      category: $enumDecode(
+        _$FailureDiagnosisCategoryEnumMap,
+        json['category'],
+      ),
+      summary: json['summary'] as String,
+      suggestedFix: json['suggestedFix'] as String,
+    );
+
+Map<String, dynamic> _$FailureDiagnosisToJson(_FailureDiagnosis instance) =>
+    <String, dynamic>{
+      'category': _$FailureDiagnosisCategoryEnumMap[instance.category]!,
+      'summary': instance.summary,
+      'suggestedFix': instance.suggestedFix,
+    };
+
+const _$FailureDiagnosisCategoryEnumMap = {
+  FailureDiagnosisCategory.dependency: 'dependency',
+  FailureDiagnosisCategory.sdkMismatch: 'sdkMismatch',
+  FailureDiagnosisCategory.codeBreak: 'codeBreak',
+  FailureDiagnosisCategory.flakyTest: 'flakyTest',
+  FailureDiagnosisCategory.environment: 'environment',
+};
+
 _HealthReport _$HealthReportFromJson(Map<String, dynamic> json) =>
     _HealthReport(
       status: $enumDecode(_$HealthCheckStepStatusEnumMap, json['status']),
@@ -36,6 +61,11 @@ _HealthReport _$HealthReportFromJson(Map<String, dynamic> json) =>
           .toList(),
       startedAt: DateTime.parse(json['startedAt'] as String),
       finishedAt: DateTime.parse(json['finishedAt'] as String),
+      diagnosis: json['diagnosis'] == null
+          ? null
+          : FailureDiagnosis.fromJson(
+              json['diagnosis'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$HealthReportToJson(_HealthReport instance) =>
@@ -44,4 +74,5 @@ Map<String, dynamic> _$HealthReportToJson(_HealthReport instance) =>
       'steps': instance.steps.map((e) => e.toJson()).toList(),
       'startedAt': instance.startedAt.toIso8601String(),
       'finishedAt': instance.finishedAt.toIso8601String(),
+      'diagnosis': instance.diagnosis?.toJson(),
     };

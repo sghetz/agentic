@@ -3,6 +3,7 @@ export 'src/id.dart';
 export 'src/task_state_machine.dart';
 
 export 'src/enums/artifact_kind.dart';
+export 'src/enums/failure_diagnosis_category.dart';
 export 'src/enums/health_check_step_status.dart';
 export 'src/enums/link_relation.dart';
 export 'src/enums/org_type.dart';

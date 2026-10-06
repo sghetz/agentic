@@ -32,9 +32,11 @@ exactly one organization's context.
 - **Pipeline (deterministic)**: `git pull` -> `fvm flutter pub get` -> `flutter analyze` ->
   `flutter test` -> `flutter build apk` -> `flutter build ios --no-codesign`.
   Builds run one project at a time.
-- **LLM involvement**: only on failure (diagnosis via dartantic_ai; fixes via Claude Code on a branch). Classify: dependency, SDK mismatch, code break,
-  flaky test, environment. Fix trivial cases (version bumps, `build_runner` regeneration) on a
-  branch; hand real breaks to Developer as a task.
+- **LLM involvement**: only on failure, via Claude Code CLI non-interactively for both steps
+  (diagnosis: `-p --json-schema --tools ""`, no file access, just classifies the failed step's
+  output; fixes: a real session in the task's git worktree). Classify: dependency, SDK mismatch,
+  code break, flaky test, environment. Fix trivial cases (version bumps, `build_runner`
+  regeneration) on a branch; hand real breaks to Developer as a task.
 - **Produces**: Health Report per project.
 - **Also**: performs the onboarding audit for new projects.
 

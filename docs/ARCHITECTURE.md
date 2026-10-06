@@ -120,8 +120,11 @@ See `docs/AGENTS.md` for full role specs. Summary:
 | Librarian | Project knowledge docs; onboarding audit summaries |
 
 Coordination is through the task board (tasks, events, artifacts), not agent-to-agent chat.
-Reasoning agents run on dartantic_ai. Developer (and Health fixes) delegate the actual coding to
-Claude Code in non-interactive mode, given the Task Spec/Design Spec and a git worktree.
+Most reasoning agents run on dartantic_ai. Health diagnosis and Developer (and Health fixes)
+instead delegate to Claude Code in non-interactive mode (`-p`, `--json-schema` for structured
+output, `--tools ""` to disable tool access for diagnosis-only calls): this reuses whatever
+Claude Code auth is already on the machine instead of a second metered API key, and Developer
+work needs the git worktree and file/shell tools anyway.
 Each agent's context = role prompt + org context + project context + task artifacts.
 Static context (design system, conventions) is placed first in prompts to maximize caching.
 

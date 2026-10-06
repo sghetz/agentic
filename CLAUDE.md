@@ -17,7 +17,8 @@ Always check the roadmap for the current phase before starting work, and do not 
 - **Backend** (`packages/server`): Dart, `shelf` + `shelf_router`, WebSockets, `drift` (SQLite),
   `cron` for scheduling. Compiled with `dart compile exe`.
 - **Agents**: `dartantic_ai` with the Anthropic provider for reasoning agents (Orchestrator,
-  Analyst, Creative, Reviewer, Librarian, Health diagnosis).
+  Analyst, Creative, Reviewer, Librarian). Health diagnosis uses Claude Code CLI non-interactively
+  instead (`-p --json-schema --tools ""`) -- reuses existing Claude Code auth, no separate API key.
 - **Coding work**: the Developer agent (and Health fixes) run **Claude Code in non-interactive
   mode as a subprocess** inside a dedicated git worktree, and the server collects its output.
   Do not hand-write file-editing or shell tools for coding tasks.

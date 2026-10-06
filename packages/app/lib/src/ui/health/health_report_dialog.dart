@@ -140,9 +140,76 @@ class _ReportTile extends StatelessWidget {
         'v${artifact.version} · ${DateFormat.yMMMd().add_jm().format(report.startedAt.toLocal())}',
       ),
       subtitle: Text(report.status.name),
-      children: [for (final step in report.steps) _StepTile(step: step)],
+      children: [
+        if (report.diagnosis != null)
+          _DiagnosisCard(diagnosis: report.diagnosis!),
+        for (final step in report.steps) _StepTile(step: step),
+      ],
     );
   }
+}
+
+class _DiagnosisCard extends StatelessWidget {
+  const _DiagnosisCard({required this.diagnosis});
+
+  final core.FailureDiagnosis diagnosis;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      color: Theme.of(context).colorScheme.errorContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.psychology_outlined,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  _categoryLabel(diagnosis.category),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              diagnosis.summary,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onErrorContainer,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Suggested fix: ${diagnosis.suggestedFix}',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Theme.of(context).colorScheme.onErrorContainer,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static String _categoryLabel(core.FailureDiagnosisCategory category) =>
+      switch (category) {
+        core.FailureDiagnosisCategory.dependency => 'Dependency issue',
+        core.FailureDiagnosisCategory.sdkMismatch => 'SDK mismatch',
+        core.FailureDiagnosisCategory.codeBreak => 'Code break',
+        core.FailureDiagnosisCategory.flakyTest => 'Flaky test',
+        core.FailureDiagnosisCategory.environment => 'Environment issue',
+      };
 }
 
 class _StepTile extends StatelessWidget {

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:core/core.dart' as core;
 import 'package:server/src/config.dart';
 import 'package:server/src/repositories/org_store.dart';
+import 'package:server/src/services/failure_diagnosis_service.dart';
 import 'package:server/src/services/flutter_version_detector.dart';
 import 'package:server/src/services/git_service.dart';
 import 'package:server/src/services/health_check_service.dart';
@@ -71,6 +72,7 @@ void main() {
         gitService: const GitService(),
         detector: const FlutterVersionDetector(),
         runner: HealthRunner(processRunner: _alwaysPasses),
+        diagnosisService: FailureDiagnosisService(invoker: (_) async => '{}'),
       );
 
       final project = await store.createProject(
@@ -110,6 +112,7 @@ void main() {
       gitService: const GitService(),
       detector: const FlutterVersionDetector(),
       runner: HealthRunner(processRunner: _alwaysPasses),
+      diagnosisService: FailureDiagnosisService(invoker: (_) async => '{}'),
     );
 
     final project = await store.createProject(
@@ -138,6 +141,7 @@ void main() {
       gitService: const GitService(),
       detector: const FlutterVersionDetector(),
       runner: HealthRunner(processRunner: _alwaysPasses),
+      diagnosisService: FailureDiagnosisService(invoker: (_) async => '{}'),
     );
 
     final project = await store.createProject(
@@ -169,6 +173,7 @@ void main() {
       gitService: const GitService(),
       detector: const FlutterVersionDetector(),
       runner: HealthRunner(processRunner: trackingRunner),
+      diagnosisService: FailureDiagnosisService(invoker: (_) async => '{}'),
     );
 
     final projectA = await store.createProject(

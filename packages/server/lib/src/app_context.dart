@@ -1,6 +1,7 @@
 import 'config.dart';
 import 'repositories/org_store.dart';
 import 'repositories/registry_store.dart';
+import 'services/failure_diagnosis_service.dart';
 import 'services/flutter_version_detector.dart';
 import 'services/git_service.dart';
 import 'services/health_check_service.dart';
@@ -37,6 +38,7 @@ class AppContext {
         gitService: gitService,
         detector: detector,
         runner: const HealthRunner(),
+        diagnosisService: const FailureDiagnosisService(),
       ),
     );
   }

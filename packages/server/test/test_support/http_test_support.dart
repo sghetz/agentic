@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:server/src/app_context.dart';
 import 'package:server/src/config.dart';
 import 'package:server/src/repositories/registry_store.dart';
+import 'package:server/src/services/failure_diagnosis_service.dart';
 import 'package:server/src/services/flutter_version_detector.dart';
 import 'package:server/src/services/git_service.dart';
 import 'package:server/src/services/health_check_service.dart';
@@ -32,6 +33,10 @@ AppContext buildTestContext() {
       gitService: gitService,
       detector: detector,
       runner: const HealthRunner(),
+      // Never calls the real `claude` CLI in tests: that costs real money
+      // and adds several seconds per call. Tests that care about diagnosis
+      // content inject their own fake invoker directly.
+      diagnosisService: FailureDiagnosisService(invoker: (_) async => '{}'),
     ),
   );
 }

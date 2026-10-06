@@ -86,7 +86,9 @@ Flutter macOS app (packages/app)
    |  shared models from packages/core
 Dart server (packages/server; compiled exe, launchd LaunchAgent, runs at login)
    |-- API layer (shelf): orgs, projects, tasks, events, artifacts, chat
-   |-- Agent runtime: dartantic_ai + Anthropic provider; one conversation per (role, project)
+   |-- Agent runtime: Claude Code CLI non-interactive subprocess per turn; one conversation per
+   |   (role, project), continued via --resume; local MCP servers expose role-specific actions
+   |   (e.g. Orchestrator's create_task)
    |-- Coding runner: Claude Code non-interactive subprocess in a git worktree per task
    |-- Ingestion workers: pull sources on schedule into `messages`
    |-- Health runner: deterministic build/lint/test pipeline per project (Process.run + FVM)
@@ -97,7 +99,9 @@ Dart server (packages/server; compiled exe, launchd LaunchAgent, runs at login)
 ### Why this split
 
 - One language (Dart) end to end; models shared between UI and server via `packages/core`.
-- `dartantic_ai` provides the agent loop, typed tool calling, embeddings, and MCP support.
+- Claude Code CLI provides the agent loop, structured output, and native MCP support for typed
+  tool calling -- reusing one existing auth (the Claude Code subscription) for every agent
+  instead of adding a second, metered Anthropic API key.
 - Coding work is delegated to Claude Code rather than rebuilt, because reliable file editing,
   shell execution, and context management are its core strengths.
 - Python-only tools (MarkItDown, Whisper) are external CLIs, not part of the codebase.
@@ -120,11 +124,11 @@ See `docs/AGENTS.md` for full role specs. Summary:
 | Librarian | Project knowledge docs; onboarding audit summaries |
 
 Coordination is through the task board (tasks, events, artifacts), not agent-to-agent chat.
-Most reasoning agents run on dartantic_ai. Health diagnosis and Developer (and Health fixes)
-instead delegate to Claude Code in non-interactive mode (`-p`, `--json-schema` for structured
-output, `--tools ""` to disable tool access for diagnosis-only calls): this reuses whatever
-Claude Code auth is already on the machine instead of a second metered API key, and Developer
-work needs the git worktree and file/shell tools anyway.
+Every agent runs on Claude Code CLI in non-interactive mode (`-p`, `--json-schema` for structured
+output, `--tools ""` to disable tool access for diagnosis-only calls, `--mcp-config` for a
+role-specific action like Orchestrator's task creation, `--resume` to continue a conversation):
+this reuses whatever Claude Code auth is already on the machine for every role instead of adding
+a second metered API key, and Developer work needs the git worktree and file/shell tools anyway.
 Each agent's context = role prompt + org context + project context + task artifacts.
 Static context (design system, conventions) is placed first in prompts to maximize caching.
 

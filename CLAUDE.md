@@ -16,9 +16,13 @@ Always check the roadmap for the current phase before starting work, and do not 
 - **Shared models** (`packages/core`): data models and artifact types used by both server and app.
 - **Backend** (`packages/server`): Dart, `shelf` + `shelf_router`, WebSockets, `drift` (SQLite),
   `cron` for scheduling. Compiled with `dart compile exe`.
-- **Agents**: `dartantic_ai` with the Anthropic provider for reasoning agents (Orchestrator,
-  Analyst, Creative, Reviewer, Librarian). Health diagnosis uses Claude Code CLI non-interactively
-  instead (`-p --json-schema --tools ""`) -- reuses existing Claude Code auth, no separate API key.
+- **Agents**: every reasoning and conversational agent (Orchestrator, Analyst, Health, Creative,
+  Reviewer, Librarian) runs on Claude Code CLI non-interactively -- reuses existing Claude Code
+  auth, no separate Anthropic API key. One conversation per (role, project), continued across
+  turns with `--resume`/`-c`; structured output via `--json-schema`; tool-free calls (e.g. Health
+  diagnosis) via `--tools ""`. An agent that needs to take an action during a conversation (e.g.
+  Orchestrator creating a task) gets a narrow local MCP server exposing just that action, wired
+  in via `--mcp-config`.
 - **Coding work**: the Developer agent (and Health fixes) run **Claude Code in non-interactive
   mode as a subprocess** inside a dedicated git worktree, and the server collects its output.
   Do not hand-write file-editing or shell tools for coding tasks.

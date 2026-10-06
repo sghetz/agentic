@@ -32,10 +32,11 @@ by hand, and browse any task's history by date.
 ## Phase 2: Chat and Orchestrator
 
 - Conversations and channels (General + per-agent) per project and per org.
-- WebSocket streaming of agent responses.
-- dartantic_ai conversation per (role, project), persisted in the org DB; token budgets;
+- WebSocket streaming of agent responses via Claude Code CLI (`--output-format stream-json`),
+  continued per (role, project) with `--resume`; persisted in the org DB; token budgets;
   static context placed first for prompt caching.
-- Orchestrator creates and assigns tasks from chat.
+- A small local MCP server exposes task-board actions (create/list/assign) so the Orchestrator
+  can create and assign tasks from chat.
 
 **Done when**: you can delegate a task in General and talk 1:1 with Health.
 

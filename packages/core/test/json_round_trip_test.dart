@@ -168,6 +168,39 @@ void main() {
       );
     });
 
+    test('HealthFixResult: fixed, with a verification report', () {
+      final result = HealthFixResult(
+        outcome: HealthFixOutcome.fixed,
+        branchName: 'agentic/health-fix-1234',
+        summary: 'Updated the sdk constraint and reran the pipeline.',
+        verificationReport: HealthReport(
+          status: HealthCheckStepStatus.passed,
+          steps: const [
+            HealthCheckStep(
+              name: 'pub_get',
+              status: HealthCheckStepStatus.passed,
+              durationMs: 400,
+              output: 'Got dependencies!',
+            ),
+          ],
+          startedAt: DateTime.utc(2026, 1, 1),
+          finishedAt: DateTime.utc(2026, 1, 1, 0, 1),
+        ),
+      );
+      expect(HealthFixResult.fromJson(result.toJson()), result);
+    });
+
+    test('HealthFixResult: notTrivial, no branch or verification report', () {
+      const result = HealthFixResult(
+        outcome: HealthFixOutcome.notTrivial,
+        summary: 'This requires a real code change, not a trivial bump.',
+      );
+      final roundTripped = HealthFixResult.fromJson(result.toJson());
+      expect(roundTripped, result);
+      expect(roundTripped.branchName, isNull);
+      expect(roundTripped.verificationReport, isNull);
+    });
+
     test('DashboardSummary with enum-keyed map and nested activity', () {
       final summary = DashboardSummary(
         orgs: [

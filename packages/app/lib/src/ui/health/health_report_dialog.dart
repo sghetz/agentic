@@ -80,8 +80,11 @@ class _HealthReportDialogState extends ConsumerState<HealthReportDialog> {
             }
             return ListView.builder(
               itemCount: artifacts.length,
-              itemBuilder: (context, index) =>
-                  _ReportTile(artifact: artifacts[index]),
+              itemBuilder: (context, index) => _ReportTile(
+                orgId: widget.orgId,
+                projectId: widget.projectId,
+                artifact: artifacts[index],
+              ),
             );
           },
           loading: () => const LoadingState(),
@@ -124,8 +127,14 @@ class _HealthReportDialogState extends ConsumerState<HealthReportDialog> {
 }
 
 class _ReportTile extends StatelessWidget {
-  const _ReportTile({required this.artifact});
+  const _ReportTile({
+    required this.orgId,
+    required this.projectId,
+    required this.artifact,
+  });
 
+  final String orgId;
+  final String projectId;
   final core.Artifact artifact;
 
   @override
@@ -142,20 +151,40 @@ class _ReportTile extends StatelessWidget {
       subtitle: Text(report.status.name),
       children: [
         if (report.diagnosis != null)
-          _DiagnosisCard(diagnosis: report.diagnosis!),
+          _DiagnosisCard(
+            orgId: orgId,
+            projectId: projectId,
+            diagnosis: report.diagnosis!,
+          ),
         for (final step in report.steps) _StepTile(step: step),
       ],
     );
   }
 }
 
-class _DiagnosisCard extends StatelessWidget {
-  const _DiagnosisCard({required this.diagnosis});
+class _DiagnosisCard extends ConsumerStatefulWidget {
+  const _DiagnosisCard({
+    required this.orgId,
+    required this.projectId,
+    required this.diagnosis,
+  });
 
+  final String orgId;
+  final String projectId;
   final core.FailureDiagnosis diagnosis;
 
   @override
+  ConsumerState<_DiagnosisCard> createState() => _DiagnosisCardState();
+}
+
+class _DiagnosisCardState extends ConsumerState<_DiagnosisCard> {
+  bool _attempting = false;
+  core.HealthFixResult? _result;
+
+  @override
   Widget build(BuildContext context) {
+    final onContainer = Theme.of(context).colorScheme.onErrorContainer;
+
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       color: Theme.of(context).colorScheme.errorContainer,
@@ -166,40 +195,69 @@ class _DiagnosisCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.psychology_outlined,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                ),
+                Icon(Icons.psychology_outlined, size: 18, color: onContainer),
                 const SizedBox(width: 6),
                 Text(
-                  _categoryLabel(diagnosis.category),
+                  _categoryLabel(widget.diagnosis.category),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onErrorContainer,
+                    color: onContainer,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              diagnosis.summary,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onErrorContainer,
-              ),
+              widget.diagnosis.summary,
+              style: TextStyle(color: onContainer),
             ),
             const SizedBox(height: 8),
             Text(
-              'Suggested fix: ${diagnosis.suggestedFix}',
-              style: TextStyle(
-                fontStyle: FontStyle.italic,
-                color: Theme.of(context).colorScheme.onErrorContainer,
-              ),
+              'Suggested fix: ${widget.diagnosis.suggestedFix}',
+              style: TextStyle(fontStyle: FontStyle.italic, color: onContainer),
             ),
+            const SizedBox(height: 12),
+            if (_result != null)
+              _FixResultView(result: _result!)
+            else
+              OutlinedButton.icon(
+                key: const Key('attemptFixButton'),
+                icon: _attempting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.auto_fix_high),
+                label: Text(
+                  _attempting ? 'Attempting fix...' : 'Attempt automatic fix',
+                ),
+                onPressed: _attempting ? null : _attemptFix,
+              ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _attemptFix() async {
+    setState(() => _attempting = true);
+    try {
+      final result = await ref
+          .read(apiClientProvider)
+          .runProjectHealthFix(widget.orgId, widget.projectId);
+      if (!mounted) return;
+      setState(() {
+        _result = result;
+        _attempting = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Fix attempt failed: $e')));
+      setState(() => _attempting = false);
+    }
   }
 
   static String _categoryLabel(core.FailureDiagnosisCategory category) =>
@@ -210,6 +268,57 @@ class _DiagnosisCard extends StatelessWidget {
         core.FailureDiagnosisCategory.flakyTest => 'Flaky test',
         core.FailureDiagnosisCategory.environment => 'Environment issue',
       };
+}
+
+class _FixResultView extends StatelessWidget {
+  const _FixResultView({required this.result});
+
+  final core.HealthFixResult result;
+
+  @override
+  Widget build(BuildContext context) {
+    final onContainer = Theme.of(context).colorScheme.onErrorContainer;
+    final (icon, label) = switch (result.outcome) {
+      core.HealthFixOutcome.fixed => (
+        Icons.check_circle_outline,
+        'Fixed on branch ${result.branchName}',
+      ),
+      core.HealthFixOutcome.notTrivial => (
+        Icons.info_outline,
+        'Not auto-fixable',
+      ),
+      core.HealthFixOutcome.stillFailing => (
+        Icons.error_outline,
+        "Fix attempt didn't resolve it",
+      ),
+    };
+
+    return Column(
+      key: const Key('fixResult'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 18, color: onContainer),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: onContainer,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (result.summary.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(result.summary, style: TextStyle(color: onContainer)),
+        ],
+      ],
+    );
+  }
 }
 
 class _StepTile extends StatelessWidget {

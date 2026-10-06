@@ -7,6 +7,7 @@ import 'services/git_service.dart';
 import 'services/health_check_service.dart';
 import 'services/health_runner.dart';
 import 'services/onboarding_service.dart';
+import 'services/trivial_fix_service.dart';
 import 'storage/org_database.dart';
 import 'storage/registry_database.dart';
 
@@ -20,11 +21,13 @@ class AppContext {
     required OrgDatabase Function(String orgId) openOrgDatabase,
     required this.onboardingService,
     required this.healthCheckService,
+    required this.trivialFixService,
   }) : _openOrgDatabase = openOrgDatabase;
 
   factory AppContext.standard(AgenticPaths paths) {
     const gitService = GitService();
     const detector = FlutterVersionDetector();
+    const runner = HealthRunner();
     return AppContext(
       registryStore: RegistryStore(RegistryDatabase.file(paths.registryDbPath)),
       openOrgDatabase: (orgId) => OrgDatabase.file(paths.orgDbPath(orgId)),
@@ -37,8 +40,13 @@ class AppContext {
         paths: paths,
         gitService: gitService,
         detector: detector,
-        runner: const HealthRunner(),
+        runner: runner,
         diagnosisService: const FailureDiagnosisService(),
+      ),
+      trivialFixService: TrivialFixService(
+        paths: paths,
+        gitService: gitService,
+        runner: runner,
       ),
     );
   }
@@ -46,6 +54,7 @@ class AppContext {
   final RegistryStore registryStore;
   final OnboardingService onboardingService;
   final HealthCheckService healthCheckService;
+  final TrivialFixService trivialFixService;
   final OrgDatabase Function(String orgId) _openOrgDatabase;
   final Map<String, OrgStore> _orgStores = {};
 

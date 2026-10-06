@@ -10,6 +10,7 @@ import 'package:server/src/services/git_service.dart';
 import 'package:server/src/services/health_check_service.dart';
 import 'package:server/src/services/health_runner.dart';
 import 'package:server/src/services/onboarding_service.dart';
+import 'package:server/src/services/trivial_fix_service.dart';
 import 'package:server/src/storage/org_database.dart';
 import 'package:server/src/storage/registry_database.dart';
 import 'package:shelf/shelf.dart';
@@ -37,6 +38,17 @@ AppContext buildTestContext() {
       // and adds several seconds per call. Tests that care about diagnosis
       // content inject their own fake invoker directly.
       diagnosisService: FailureDiagnosisService(invoker: (_) async => '{}'),
+    ),
+    // Never calls the real `claude` CLI in tests, and never actually edits
+    // anything -- returns no changes, so every test run safely discards
+    // the worktree it creates. Tests that care about fix behavior inject
+    // their own fake invoker directly.
+    trivialFixService: TrivialFixService(
+      paths: paths,
+      gitService: gitService,
+      runner: const HealthRunner(),
+      invoker: (_, {required workingDirectory}) async =>
+          jsonEncode({'result': 'no changes made'}),
     ),
   );
 }

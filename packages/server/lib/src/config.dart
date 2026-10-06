@@ -30,4 +30,10 @@ class AgenticPaths {
 
   String repoPath(String orgSlug, String projectSlug) =>
       p.join(reposBaseDir, orgSlug, projectSlug);
+
+  /// A disposable worktree for one fix attempt. [suffix] should be unique
+  /// per attempt (e.g. a timestamp) -- callers also use it to build the
+  /// matching branch name, so the two stay associated.
+  String worktreePath(String orgSlug, String projectSlug, String suffix) =>
+      p.join(reposBaseDir, orgSlug, '$projectSlug-worktrees', suffix);
 }

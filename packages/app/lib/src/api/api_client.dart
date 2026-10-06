@@ -318,6 +318,22 @@ class ApiClient {
         .toList();
   }
 
+  /// Attempts to auto-fix the latest health report's failure, if it's
+  /// judged trivial. Can take a while (a real pipeline re-run to verify);
+  /// no client timeout. Never pushes or merges -- a `fixed` outcome just
+  /// means a local branch now exists for review.
+  Future<core.HealthFixResult> runProjectHealthFix(
+    String orgId,
+    String projectId,
+  ) async {
+    final body = await _send(
+      'POST',
+      _uri('/orgs/$orgId/projects/$projectId/health-fix'),
+      json: const {},
+    );
+    return core.HealthFixResult.fromJson(body! as Map<String, Object?>);
+  }
+
   // ---- Dashboard ----
 
   Future<core.DashboardSummary> dashboard() async {

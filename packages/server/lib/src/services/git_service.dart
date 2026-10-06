@@ -53,4 +53,76 @@ class GitService {
     }
     return GitCloneResult(path: targetPath, pulled: false);
   }
+
+  /// Creates a new branch and a disposable worktree for it, off the repo's
+  /// current HEAD. All git history for the fix attempt lives here, isolated
+  /// from the repo's primary checkout.
+  Future<void> createWorktree({
+    required String repoPath,
+    required String branchName,
+    required String worktreePath,
+  }) async {
+    await Directory(worktreePath).parent.create(recursive: true);
+    final result = await Process.run('git', [
+      'worktree',
+      'add',
+      '-b',
+      branchName,
+      worktreePath,
+    ], workingDirectory: repoPath);
+    if (result.exitCode != 0) {
+      throw GitOperationException('git worktree add failed: ${result.stderr}');
+    }
+  }
+
+  /// Removes a worktree and its branch. Used to discard a fix attempt that
+  /// either made no changes or still failed verification -- never leaves
+  /// stale half-fixes lying around.
+  Future<void> removeWorktree({
+    required String repoPath,
+    required String worktreePath,
+    required String branchName,
+  }) async {
+    await Process.run('git', [
+      'worktree',
+      'remove',
+      worktreePath,
+      '--force',
+    ], workingDirectory: repoPath);
+    await Process.run('git', [
+      'branch',
+      '-D',
+      branchName,
+    ], workingDirectory: repoPath);
+  }
+
+  Future<bool> hasUncommittedChanges(String worktreePath) async {
+    final result = await Process.run('git', [
+      'status',
+      '--porcelain',
+    ], workingDirectory: worktreePath);
+    return (result.stdout as String).trim().isNotEmpty;
+  }
+
+  /// Stages and commits everything in the worktree. The only git operation
+  /// in this whole fix-attempt flow that Claude Code itself never performs
+  /// -- it has no `git` tool access at all, only `Edit` and
+  /// `flutter`/`dart`/`fvm` bash commands.
+  Future<void> commitAll(String worktreePath, String message) async {
+    final add = await Process.run('git', [
+      'add',
+      '-A',
+    ], workingDirectory: worktreePath);
+    if (add.exitCode != 0) {
+      throw GitOperationException('git add failed: ${add.stderr}');
+    }
+    final commit = await Process.run('git', [
+      'commit',
+      '-m',
+      message,
+    ], workingDirectory: worktreePath);
+    if (commit.exitCode != 0) {
+      throw GitOperationException('git commit failed: ${commit.stderr}');
+    }
+  }
 }

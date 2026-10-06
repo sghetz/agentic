@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:core/core.dart' as core;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -84,6 +86,67 @@ void registerHealthCheckRoutes(Router router, AppContext ctx) {
         limit: limitParam == null ? null : int.tryParse(limitParam),
       );
       return jsonResponse(reports.map((a) => a.toJson()).toList());
+    });
+  });
+
+  router.post('/orgs/<orgId>/projects/<projectId>/health-fix', (
+    Request request,
+    String orgId,
+    String projectId,
+  ) {
+    return guarded(() async {
+      final org = await ctx.registryStore.get(orgId);
+      if (org == null) {
+        return notFoundResponse('Organization $orgId not found');
+      }
+      final store = await ctx.orgStore(orgId);
+      if (store == null) {
+        return notFoundResponse('Organization $orgId not found');
+      }
+      final project = await store.getProject(projectId);
+      if (project == null) {
+        return notFoundResponse('Project $projectId not found');
+      }
+
+      final latest = await store.listProjectArtifacts(
+        projectId,
+        kind: core.ArtifactKind.healthReport,
+        limit: 1,
+      );
+      if (latest.isEmpty) {
+        return badRequestResponse('No health report for this project yet');
+      }
+
+      final report = core.HealthReport.fromJson(
+        jsonDecode(latest.single.content!) as Map<String, Object?>,
+      );
+      final diagnosis = report.diagnosis;
+      if (diagnosis == null) {
+        return badRequestResponse(
+          'The latest health report has no diagnosis to act on',
+        );
+      }
+
+      core.HealthCheckStep? failedStep;
+      for (final step in report.steps) {
+        if (step.status == core.HealthCheckStepStatus.failed) {
+          failedStep = step;
+          break;
+        }
+      }
+      if (failedStep == null) {
+        return badRequestResponse(
+          'The latest health report is not currently failing',
+        );
+      }
+
+      final result = await ctx.trivialFixService.attemptFix(
+        orgSlug: org.slug,
+        project: project,
+        diagnosis: diagnosis,
+        failedStep: failedStep,
+      );
+      return jsonResponse(result.toJson());
     });
   });
 }

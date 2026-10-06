@@ -156,4 +156,52 @@ void main() {
     expect(list, hasLength(2));
     expect((list.first as Map)['version'], 2); // newest first
   }, timeout: const Timeout(Duration(minutes: 2)));
+
+  group('health-fix', () {
+    test('400s when there is no health report yet', () async {
+      final projectId = await createProjectWithRepo('no-report-yet');
+      final (status, _) = await send(
+        handler,
+        'POST',
+        '/orgs/$orgId/projects/$projectId/health-fix',
+      );
+      expect(status, 400);
+    });
+
+    test('404s for an unknown project', () async {
+      final (status, _) = await send(
+        handler,
+        'POST',
+        '/orgs/$orgId/projects/no-such-project/health-fix',
+      );
+      expect(status, 404);
+    });
+
+    test(
+      'attempts a fix once a health report exists, and the test context never calls the real CLI',
+      () async {
+        final projectId = await createProjectWithRepo('fixable');
+        final (checkStatus, _) = await send(
+          handler,
+          'POST',
+          '/orgs/$orgId/projects/$projectId/health-check',
+        );
+        expect(checkStatus, 201);
+
+        final (status, body) = await send(
+          handler,
+          'POST',
+          '/orgs/$orgId/projects/$projectId/health-fix',
+        );
+
+        // The seeded repo's health-check fails with no diagnosis attached
+        // (the default test context's diagnosis invoker returns `{}`), so
+        // there's nothing to act on -- this still proves the route wires
+        // through to the service without ever shelling out to `claude`.
+        expect(status, 400);
+        expect((body! as Map)['error'], contains('no diagnosis'));
+      },
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
+  });
 }

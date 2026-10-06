@@ -46,4 +46,4 @@ Health Reports in the UI, Claude Code CLI diagnosis on failure, Claude Code triv
 - [x] 1. Repo tracking + onboarding
 - [x] 2. Deterministic health pipeline + Health Reports
 - [x] 3. Claude Code CLI failure diagnosis
-- [ ] 4. Claude Code trivial-fix subprocess
+- [x] 4. Claude Code trivial-fix subprocess

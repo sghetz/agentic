@@ -4,6 +4,8 @@ import 'package:shelf/shelf.dart';
 
 import 'repositories/org_store.dart';
 import 'repositories/registry_store.dart';
+import 'services/git_service.dart';
+import 'services/onboarding_service.dart';
 
 const jsonHeaders = {'content-type': 'application/json'};
 
@@ -18,6 +20,9 @@ Response badRequestResponse(String message) =>
 
 Response conflictResponse(Map<String, Object?> body) =>
     jsonResponse(body, status: 409);
+
+Response upstreamErrorResponse(String message) =>
+    jsonResponse({'error': message}, status: 502);
 
 Future<Map<String, Object?>> readJsonBody(Request request) async {
   final text = await request.readAsString();
@@ -44,6 +49,12 @@ Future<Response> guarded(Future<Response> Function() action) async {
     return conflictResponse({'error': 'slug "${e.slug}" is already in use'});
   } on DuplicateProjectSlug catch (e) {
     return conflictResponse({'error': 'slug "${e.slug}" is already in use'});
+  } on NoRepoConfigured catch (e) {
+    return badRequestResponse(
+      'Project ${e.projectId} has no repo configured to onboard',
+    );
+  } on GitOperationException catch (e) {
+    return upstreamErrorResponse(e.message);
   } on InvalidTaskTransition catch (e) {
     return conflictResponse({
       'error': 'invalid transition',

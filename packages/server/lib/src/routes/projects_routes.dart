@@ -91,4 +91,32 @@ void registerProjectsRoutes(Router router, AppContext ctx) {
       return jsonResponse(archived.toJson());
     });
   });
+
+  router.post('/orgs/<orgId>/projects/<projectId>/onboard', (
+    Request request,
+    String orgId,
+    String projectId,
+  ) {
+    return guarded(() async {
+      final org = await ctx.registryStore.get(orgId);
+      if (org == null) {
+        return notFoundResponse('Organization $orgId not found');
+      }
+      final store = await ctx.orgStore(orgId);
+      if (store == null) {
+        return notFoundResponse('Organization $orgId not found');
+      }
+      final project = await store.getProject(projectId);
+      if (project == null) {
+        return notFoundResponse('Project $projectId not found');
+      }
+
+      final onboarded = await ctx.onboardingService.onboard(
+        orgSlug: org.slug,
+        project: project,
+        orgStore: store,
+      );
+      return jsonResponse(onboarded.toJson());
+    });
+  });
 }

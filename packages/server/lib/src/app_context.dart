@@ -1,6 +1,9 @@
 import 'config.dart';
 import 'repositories/org_store.dart';
 import 'repositories/registry_store.dart';
+import 'services/flutter_version_detector.dart';
+import 'services/git_service.dart';
+import 'services/onboarding_service.dart';
 import 'storage/org_database.dart';
 import 'storage/registry_database.dart';
 
@@ -12,16 +15,23 @@ class AppContext {
   AppContext({
     required this.registryStore,
     required OrgDatabase Function(String orgId) openOrgDatabase,
+    required this.onboardingService,
   }) : _openOrgDatabase = openOrgDatabase;
 
   factory AppContext.standard(AgenticPaths paths) {
     return AppContext(
       registryStore: RegistryStore(RegistryDatabase.file(paths.registryDbPath)),
       openOrgDatabase: (orgId) => OrgDatabase.file(paths.orgDbPath(orgId)),
+      onboardingService: OnboardingService(
+        paths: paths,
+        gitService: const GitService(),
+        detector: const FlutterVersionDetector(),
+      ),
     );
   }
 
   final RegistryStore registryStore;
+  final OnboardingService onboardingService;
   final OrgDatabase Function(String orgId) _openOrgDatabase;
   final Map<String, OrgStore> _orgStores = {};
 

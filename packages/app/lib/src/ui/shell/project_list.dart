@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../api/api_client.dart';
 import '../../api/api_client_provider.dart';
 import '../../state/org_providers.dart';
 import '../../state/project_providers.dart';
@@ -63,10 +64,12 @@ class ProjectList extends ConsumerWidget {
                   final project = projects[index];
                   final isArchived =
                       project.status == core.ProjectStatus.archived;
+                  final hasRepo = project.repos.isNotEmpty;
+
                   return ListTile(
                     selected: project.id == selectedProjectId,
                     title: Text(project.name),
-                    subtitle: isArchived ? const Text('Archived') : null,
+                    subtitle: Text(_subtitleFor(project, isArchived)),
                     onTap: () {
                       ref
                           .read(selectedProjectIdProvider.notifier)
@@ -75,22 +78,30 @@ class ProjectList extends ConsumerWidget {
                     },
                     trailing: PopupMenuButton<String>(
                       onSelected: (action) async {
-                        if (action == 'edit') {
-                          await _showEditProjectDialog(
-                            context,
-                            ref,
-                            orgId,
-                            project,
-                          );
-                        } else if (action == 'archive') {
-                          await ref
-                              .read(apiClientProvider)
-                              .archiveProject(orgId, project.id);
-                          ref.invalidate(projectListProvider(orgId));
+                        switch (action) {
+                          case 'edit':
+                            await _showEditProjectDialog(
+                              context,
+                              ref,
+                              orgId,
+                              project,
+                            );
+                          case 'onboard':
+                            await _onboard(context, ref, orgId, project);
+                          case 'archive':
+                            await ref
+                                .read(apiClientProvider)
+                                .archiveProject(orgId, project.id);
+                            ref.invalidate(projectListProvider(orgId));
                         }
                       },
                       itemBuilder: (context) => [
                         const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                        if (hasRepo)
+                          const PopupMenuItem(
+                            value: 'onboard',
+                            child: Text('Clone & detect'),
+                          ),
                         if (!isArchived)
                           const PopupMenuItem(
                             value: 'archive',
@@ -113,6 +124,35 @@ class ProjectList extends ConsumerWidget {
     );
   }
 
+  String _subtitleFor(core.Project project, bool isArchived) {
+    final parts = <String>[
+      if (isArchived) 'Archived',
+      if (project.flutterVersion != null) 'Flutter ${project.flutterVersion}',
+      if (project.repos.isEmpty) 'No repo configured',
+    ];
+    return parts.isEmpty ? project.slug : parts.join(' · ');
+  }
+
+  Future<void> _onboard(
+    BuildContext context,
+    WidgetRef ref,
+    String orgId,
+    core.Project project,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(apiClientProvider).onboardProject(orgId, project.id);
+      ref.invalidate(projectListProvider(orgId));
+      messenger.showSnackBar(
+        SnackBar(content: Text('Onboarded ${project.name}')),
+      );
+    } on ApiException catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Onboarding failed: ${e.body}')),
+      );
+    }
+  }
+
   Future<void> _showCreateProjectDialog(
     BuildContext context,
     WidgetRef ref,
@@ -120,6 +160,8 @@ class ProjectList extends ConsumerWidget {
   ) async {
     final nameController = TextEditingController();
     final slugController = TextEditingController();
+    final repoUrlController = TextEditingController();
+    final branchController = TextEditingController(text: 'main');
 
     final shouldCreate = await showDialog<bool>(
       context: context,
@@ -135,6 +177,17 @@ class ProjectList extends ConsumerWidget {
             TextField(
               controller: slugController,
               decoration: const InputDecoration(labelText: 'Slug'),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: repoUrlController,
+              decoration: const InputDecoration(
+                labelText: 'Repo URL (optional)',
+              ),
+            ),
+            TextField(
+              controller: branchController,
+              decoration: const InputDecoration(labelText: 'Default branch'),
             ),
           ],
         ),
@@ -153,6 +206,7 @@ class ProjectList extends ConsumerWidget {
 
     if (shouldCreate != true) return;
 
+    final repoUrl = repoUrlController.text.trim();
     await ref
         .read(apiClientProvider)
         .createProject(
@@ -160,6 +214,17 @@ class ProjectList extends ConsumerWidget {
           core.CreateProjectRequest(
             name: nameController.text,
             slug: slugController.text,
+            repos: repoUrl.isEmpty
+                ? const []
+                : [
+                    core.RepoConfig(
+                      url: repoUrl,
+                      defaultBranch: branchController.text.trim().isEmpty
+                          ? 'main'
+                          : branchController.text.trim(),
+                      path: '',
+                    ),
+                  ],
           ),
         );
     ref.invalidate(projectListProvider(orgId));
@@ -171,15 +236,38 @@ class ProjectList extends ConsumerWidget {
     String orgId,
     core.Project project,
   ) async {
+    final existingRepo = project.repos.isEmpty ? null : project.repos.first;
     final nameController = TextEditingController(text: project.name);
+    final repoUrlController = TextEditingController(
+      text: existingRepo?.url ?? '',
+    );
+    final branchController = TextEditingController(
+      text: existingRepo?.defaultBranch ?? 'main',
+    );
 
     final shouldSave = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Edit project'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(labelText: 'Name'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: repoUrlController,
+              decoration: const InputDecoration(
+                labelText: 'Repo URL (optional)',
+              ),
+            ),
+            TextField(
+              controller: branchController,
+              decoration: const InputDecoration(labelText: 'Default branch'),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -196,12 +284,26 @@ class ProjectList extends ConsumerWidget {
 
     if (shouldSave != true) return;
 
+    final repoUrl = repoUrlController.text.trim();
     await ref
         .read(apiClientProvider)
         .updateProject(
           orgId,
           project.id,
-          core.UpdateProjectRequest(name: nameController.text),
+          core.UpdateProjectRequest(
+            name: nameController.text,
+            repos: repoUrl.isEmpty
+                ? const []
+                : [
+                    core.RepoConfig(
+                      url: repoUrl,
+                      defaultBranch: branchController.text.trim().isEmpty
+                          ? 'main'
+                          : branchController.text.trim(),
+                      path: existingRepo?.path ?? '',
+                    ),
+                  ],
+          ),
         );
     ref.invalidate(projectListProvider(orgId));
   }

@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-/// Where Agentic stores its SQLite databases. Injectable so tests use a
-/// temp directory instead of the real `~/Library/Application Support/Agentic/`.
+/// Where Agentic stores its SQLite databases and cloned repos. Injectable
+/// so tests use a temp directory instead of the real locations.
 class AgenticPaths {
-  const AgenticPaths(this.dataDir);
+  const AgenticPaths(this.dataDir, this.reposBaseDir);
 
   factory AgenticPaths.standard() {
     final home = Platform.environment['HOME'];
@@ -14,12 +14,20 @@ class AgenticPaths {
     }
     return AgenticPaths(
       p.join(home, 'Library', 'Application Support', 'Agentic'),
+      p.join(home, 'Agentic', 'repos'),
     );
   }
 
   final String dataDir;
 
+  /// Where cloned project repos live, per the architecture doc:
+  /// `~/Agentic/repos/<org_slug>/<project_slug>/`.
+  final String reposBaseDir;
+
   String get registryDbPath => p.join(dataDir, 'registry.db');
 
   String orgDbPath(String orgId) => p.join(dataDir, 'orgs', orgId, 'data.db');
+
+  String repoPath(String orgSlug, String projectSlug) =>
+      p.join(reposBaseDir, orgSlug, projectSlug);
 }

@@ -130,6 +130,17 @@ class ApiClient {
     return core.Project.fromJson(body! as Map<String, Object?>);
   }
 
+  /// Clones (or pulls) the project's configured repo and detects its
+  /// Flutter version.
+  Future<core.Project> onboardProject(String orgId, String projectId) async {
+    final body = await _send(
+      'POST',
+      _uri('/orgs/$orgId/projects/$projectId/onboard'),
+      json: const {},
+    );
+    return core.Project.fromJson(body! as Map<String, Object?>);
+  }
+
   // ---- Project links ----
 
   Future<List<core.ProjectLink>> listProjectLinks(

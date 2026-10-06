@@ -7,7 +7,7 @@ The owner talks to agents one-on-one or in a general chat, per project.
 Agentic is the project name; use it for the app name, bundle display name, and data folders.
 
 Full design: `docs/ARCHITECTURE.md`. Build plan: `docs/ROADMAP.md`. Agent roles: `docs/AGENTS.md`.
-Current phase spec: `docs/PHASE_0_SPEC.md` (follow it exactly; update its Progress list after each approved slice).
+Current phase spec: `docs/PHASE_1_SPEC.md` (follow it exactly; update its Progress list after each approved slice).
 Always check the roadmap for the current phase before starting work, and do not build ahead of it.
 
 ## Stack (all Dart)

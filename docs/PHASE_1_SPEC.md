@@ -35,6 +35,6 @@ Health Reports in the UI, dartantic_ai diagnosis on failure, Claude Code trivial
 (Update after each approved slice.)
 
 - [x] 1. Repo tracking + onboarding
-- [ ] 2. Deterministic health pipeline + Health Reports
+- [x] 2. Deterministic health pipeline + Health Reports
 - [ ] 3. dartantic_ai diagnosis
 - [ ] 4. Claude Code trivial-fix subprocess

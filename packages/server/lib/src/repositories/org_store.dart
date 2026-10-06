@@ -405,7 +405,7 @@ class OrgStore {
     );
   }
 
-  // ---- Artifacts ----
+  // ---- Artifacts (task-scoped) ----
 
   Future<core.Artifact> createArtifact(
     String taskId,
@@ -430,7 +430,7 @@ class OrgStore {
         .insert(
           ArtifactsCompanion.insert(
             id: id,
-            taskId: taskId,
+            taskId: Value(taskId),
             kind: request.kind,
             uri: request.uri,
             version: nextVersion,
@@ -451,6 +451,68 @@ class OrgStore {
     final rows = await (_db.select(
       _db.artifacts,
     )..where((a) => a.taskId.equals(taskId))).get();
+    return rows.map(_artifactToModel).toList();
+  }
+
+  // ---- Artifacts (project-scoped, e.g. Health Reports) ----
+
+  Future<core.Artifact> createProjectArtifact(
+    String projectId, {
+    required core.ArtifactKind kind,
+    required String uri,
+    String? content,
+  }) async {
+    if (await getProject(projectId) == null) throw ProjectNotFound(projectId);
+
+    final existingOfKind = (await listProjectArtifacts(projectId, kind: kind));
+    final nextVersion =
+        existingOfKind.fold<int>(
+          0,
+          (max, a) => a.version > max ? a.version : max,
+        ) +
+        1;
+
+    final id = core.newId();
+    final now = DateTime.now().toUtc();
+    await _db
+        .into(_db.artifacts)
+        .insert(
+          ArtifactsCompanion.insert(
+            id: id,
+            projectId: Value(projectId),
+            kind: kind,
+            uri: uri,
+            content: Value(content),
+            version: nextVersion,
+            createdAt: now,
+          ),
+        );
+    return core.Artifact(
+      id: id,
+      projectId: projectId,
+      kind: kind,
+      uri: uri,
+      content: content,
+      version: nextVersion,
+      createdAt: now,
+    );
+  }
+
+  Future<List<core.Artifact>> listProjectArtifacts(
+    String projectId, {
+    core.ArtifactKind? kind,
+    int? limit,
+  }) async {
+    final select = _db.select(_db.artifacts)
+      ..where((a) => a.projectId.equals(projectId))
+      ..orderBy([(a) => OrderingTerm.desc(a.createdAt)]);
+    if (kind != null) {
+      select.where((a) => a.kind.equalsValue(kind));
+    }
+    if (limit != null) {
+      select.limit(limit);
+    }
+    final rows = await select.get();
     return rows.map(_artifactToModel).toList();
   }
 
@@ -498,8 +560,10 @@ class OrgStore {
   core.Artifact _artifactToModel(ArtifactRow row) => core.Artifact(
     id: row.id,
     taskId: row.taskId,
+    projectId: row.projectId,
     kind: row.kind,
     uri: row.uri,
+    content: row.content,
     version: row.version,
     createdAt: row.createdAt,
   );

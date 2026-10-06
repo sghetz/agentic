@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Artifact {
 
- String get id; String get taskId; ArtifactKind get kind; String get uri; int get version; DateTime get createdAt;
+ String get id; String? get taskId; String? get projectId; ArtifactKind get kind; String get uri; String? get content; int get version; DateTime get createdAt;
 /// Create a copy of Artifact
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $ArtifactCopyWith<Artifact> get copyWith => _$ArtifactCopyWithImpl<Artifact>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as Artifact;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Artifact&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.taskId, _this.taskId) || other.taskId == _this.taskId)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.uri, _this.uri) || other.uri == _this.uri)&&(identical(other.version, _this.version) || other.version == _this.version)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Artifact&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.taskId, _this.taskId) || other.taskId == _this.taskId)&&(identical(other.projectId, _this.projectId) || other.projectId == _this.projectId)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.uri, _this.uri) || other.uri == _this.uri)&&(identical(other.content, _this.content) || other.content == _this.content)&&(identical(other.version, _this.version) || other.version == _this.version)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as Artifact;
-  return Object.hash(runtimeType,_this.id,_this.taskId,_this.kind,_this.uri,_this.version,_this.createdAt);
+  return Object.hash(runtimeType,_this.id,_this.taskId,_this.projectId,_this.kind,_this.uri,_this.content,_this.version,_this.createdAt);
 }
 
 @override
 String toString() {
   final _this = this as Artifact;
-  return 'Artifact(id: ${_this.id}, taskId: ${_this.taskId}, kind: ${_this.kind}, uri: ${_this.uri}, version: ${_this.version}, createdAt: ${_this.createdAt})';
+  return 'Artifact(id: ${_this.id}, taskId: ${_this.taskId}, projectId: ${_this.projectId}, kind: ${_this.kind}, uri: ${_this.uri}, content: ${_this.content}, version: ${_this.version}, createdAt: ${_this.createdAt})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $ArtifactCopyWith<$Res>  {
   factory $ArtifactCopyWith(Artifact value, $Res Function(Artifact) _then) = _$ArtifactCopyWithImpl;
 @useResult
 $Res call({
- String id, String taskId, ArtifactKind kind, String uri, int version, DateTime createdAt
+ String id, String? taskId, String? projectId, ArtifactKind kind, String uri, String? content, int version, DateTime createdAt
 });
 
 
@@ -71,13 +71,15 @@ class _$ArtifactCopyWithImpl<$Res>
 
 /// Create a copy of Artifact
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? taskId = null,Object? kind = null,Object? uri = null,Object? version = null,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? taskId = freezed,Object? projectId = freezed,Object? kind = null,Object? uri = null,Object? content = freezed,Object? version = null,Object? createdAt = null,}) {
   return _then(Artifact(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
-as String,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as String,taskId: freezed == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as ArtifactKind,uri: null == uri ? _self.uri : uri // ignore: cast_nullable_to_non_nullable
-as String,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as String,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+as String?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
@@ -161,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String taskId,  ArtifactKind kind,  String uri,  int version,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? taskId,  String? projectId,  ArtifactKind kind,  String uri,  String? content,  int version,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Artifact() when $default != null:
-return $default(_that.id,_that.taskId,_that.kind,_that.uri,_that.version,_that.createdAt);case _:
+return $default(_that.id,_that.taskId,_that.projectId,_that.kind,_that.uri,_that.content,_that.version,_that.createdAt);case _:
   return orElse();
 
 }
@@ -182,10 +184,10 @@ return $default(_that.id,_that.taskId,_that.kind,_that.uri,_that.version,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String taskId,  ArtifactKind kind,  String uri,  int version,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? taskId,  String? projectId,  ArtifactKind kind,  String uri,  String? content,  int version,  DateTime createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _Artifact():
-return $default(_that.id,_that.taskId,_that.kind,_that.uri,_that.version,_that.createdAt);}
+return $default(_that.id,_that.taskId,_that.projectId,_that.kind,_that.uri,_that.content,_that.version,_that.createdAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -199,10 +201,10 @@ return $default(_that.id,_that.taskId,_that.kind,_that.uri,_that.version,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String taskId,  ArtifactKind kind,  String uri,  int version,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? taskId,  String? projectId,  ArtifactKind kind,  String uri,  String? content,  int version,  DateTime createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Artifact() when $default != null:
-return $default(_that.id,_that.taskId,_that.kind,_that.uri,_that.version,_that.createdAt);case _:
+return $default(_that.id,_that.taskId,_that.projectId,_that.kind,_that.uri,_that.content,_that.version,_that.createdAt);case _:
   return null;
 
 }
@@ -214,13 +216,15 @@ return $default(_that.id,_that.taskId,_that.kind,_that.uri,_that.version,_that.c
 @JsonSerializable()
 
 class _Artifact implements Artifact {
-  const _Artifact({required this.id, required this.taskId, required this.kind, required this.uri, required this.version, required this.createdAt});
+  const _Artifact({required this.id, this.taskId, this.projectId, required this.kind, required this.uri, this.content, required this.version, required this.createdAt});
   factory _Artifact.fromJson(Map<String, dynamic> json) => _$ArtifactFromJson(json);
 
 @override final  String id;
-@override final  String taskId;
+@override final  String? taskId;
+@override final  String? projectId;
 @override final  ArtifactKind kind;
 @override final  String uri;
+@override final  String? content;
 @override final  int version;
 @override final  DateTime createdAt;
 
@@ -237,18 +241,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Artifact&&(identical(other.id, id) || other.id == id)&&(identical(other.taskId, taskId) || other.taskId == taskId)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.uri, uri) || other.uri == uri)&&(identical(other.version, version) || other.version == version)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Artifact&&(identical(other.id, id) || other.id == id)&&(identical(other.taskId, taskId) || other.taskId == taskId)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.uri, uri) || other.uri == uri)&&(identical(other.content, content) || other.content == content)&&(identical(other.version, version) || other.version == version)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,taskId,kind,uri,version,createdAt);
+    return Object.hash(runtimeType,id,taskId,projectId,kind,uri,content,version,createdAt);
 }
 
 @override
 String toString() {
-    return 'Artifact(id: $id, taskId: $taskId, kind: $kind, uri: $uri, version: $version, createdAt: $createdAt)';
+    return 'Artifact(id: $id, taskId: $taskId, projectId: $projectId, kind: $kind, uri: $uri, content: $content, version: $version, createdAt: $createdAt)';
 }
 
 
@@ -259,7 +263,7 @@ abstract mixin class _$ArtifactCopyWith<$Res> implements $ArtifactCopyWith<$Res>
   factory _$ArtifactCopyWith(_Artifact value, $Res Function(_Artifact) _then) = __$ArtifactCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String taskId, ArtifactKind kind, String uri, int version, DateTime createdAt
+ String id, String? taskId, String? projectId, ArtifactKind kind, String uri, String? content, int version, DateTime createdAt
 });
 
 
@@ -276,13 +280,15 @@ class __$ArtifactCopyWithImpl<$Res>
 
 /// Create a copy of Artifact
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? taskId = null,Object? kind = null,Object? uri = null,Object? version = null,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? taskId = freezed,Object? projectId = freezed,Object? kind = null,Object? uri = null,Object? content = freezed,Object? version = null,Object? createdAt = null,}) {
   return _then(_Artifact(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
-as String,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as String,taskId: freezed == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
+as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as ArtifactKind,uri: null == uri ? _self.uri : uri // ignore: cast_nullable_to_non_nullable
-as String,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as String,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+as String?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));

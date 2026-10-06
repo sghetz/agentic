@@ -6,6 +6,8 @@ import 'package:server/src/config.dart';
 import 'package:server/src/repositories/registry_store.dart';
 import 'package:server/src/services/flutter_version_detector.dart';
 import 'package:server/src/services/git_service.dart';
+import 'package:server/src/services/health_check_service.dart';
+import 'package:server/src/services/health_runner.dart';
 import 'package:server/src/services/onboarding_service.dart';
 import 'package:server/src/storage/org_database.dart';
 import 'package:server/src/storage/registry_database.dart';
@@ -15,13 +17,21 @@ import 'package:test/test.dart';
 AppContext buildTestContext() {
   final tempDir = Directory.systemTemp.createTempSync('agentic_test_');
   final paths = AgenticPaths('${tempDir.path}/data', '${tempDir.path}/repos');
+  const gitService = GitService();
+  const detector = FlutterVersionDetector();
   return AppContext(
     registryStore: RegistryStore(RegistryDatabase.memory()),
     openOrgDatabase: (_) => OrgDatabase.memory(),
     onboardingService: OnboardingService(
       paths: paths,
-      gitService: const GitService(),
-      detector: const FlutterVersionDetector(),
+      gitService: gitService,
+      detector: detector,
+    ),
+    healthCheckService: HealthCheckService(
+      paths: paths,
+      gitService: gitService,
+      detector: detector,
+      runner: const HealthRunner(),
     ),
   );
 }

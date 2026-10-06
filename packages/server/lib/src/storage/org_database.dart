@@ -22,5 +22,19 @@ class OrgDatabase extends _$OrgDatabase {
   factory OrgDatabase.memory() => OrgDatabase(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        // v2: artifacts become project-scoped-or-task-scoped (taskId went
+        // nullable, projectId + content were added). No real artifact data
+        // exists yet in any deployment, so a drop-and-recreate is safe.
+        await m.deleteTable(artifacts.actualTableName);
+        await m.createTable(artifacts);
+      }
+    },
+  );
 }

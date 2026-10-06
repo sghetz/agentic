@@ -273,6 +273,51 @@ class ApiClient {
     return core.Artifact.fromJson(body! as Map<String, Object?>);
   }
 
+  // ---- Health checks ----
+
+  /// Clones/pulls, runs the deterministic pipeline, and stores the result.
+  /// Can take a while (a real `flutter build` run) -- no client timeout.
+  Future<core.Artifact> runProjectHealthCheck(
+    String orgId,
+    String projectId,
+  ) async {
+    final body = await _send(
+      'POST',
+      _uri('/orgs/$orgId/projects/$projectId/health-check'),
+      json: const {},
+    );
+    return core.Artifact.fromJson(body! as Map<String, Object?>);
+  }
+
+  /// Checks every project in the org that has a repo configured.
+  Future<List<core.Artifact>> runOrgHealthCheck(String orgId) async {
+    final body = await _send(
+      'POST',
+      _uri('/orgs/$orgId/health-check'),
+      json: const {},
+    );
+    return (body! as List)
+        .map((e) => core.Artifact.fromJson(e as Map<String, Object?>))
+        .toList();
+  }
+
+  Future<List<core.Artifact>> listHealthReports(
+    String orgId,
+    String projectId, {
+    int? limit,
+  }) async {
+    final query = limit == null ? null : {'limit': '$limit'};
+    final body =
+        await _send(
+              'GET',
+              _uri('/orgs/$orgId/projects/$projectId/health-reports', query),
+            )
+            as List;
+    return body
+        .map((e) => core.Artifact.fromJson(e as Map<String, Object?>))
+        .toList();
+  }
+
   // ---- Dashboard ----
 
   Future<core.DashboardSummary> dashboard() async {

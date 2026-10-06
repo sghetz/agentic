@@ -10,6 +10,8 @@ import '../../state/project_providers.dart';
 import '../common/empty_state.dart';
 import '../common/error_state.dart';
 import '../common/loading_state.dart';
+import '../health/health_report_dialog.dart';
+import 'health_indicator.dart';
 
 class ProjectList extends ConsumerWidget {
   const ProjectList({super.key});
@@ -36,6 +38,11 @@ class ProjectList extends ConsumerWidget {
                   'Projects',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
+              ),
+              IconButton(
+                tooltip: 'Check all projects',
+                icon: const Icon(Icons.health_and_safety_outlined),
+                onPressed: () => _checkAll(context, ref, orgId),
               ),
               IconButton(
                 tooltip: 'New project',
@@ -68,6 +75,9 @@ class ProjectList extends ConsumerWidget {
 
                   return ListTile(
                     selected: project.id == selectedProjectId,
+                    leading: hasRepo
+                        ? HealthIndicator(orgId: orgId, projectId: project.id)
+                        : null,
                     title: Text(project.name),
                     subtitle: Text(_subtitleFor(project, isArchived)),
                     onTap: () {
@@ -88,6 +98,13 @@ class ProjectList extends ConsumerWidget {
                             );
                           case 'onboard':
                             await _onboard(context, ref, orgId, project);
+                          case 'health':
+                            await showHealthReportDialog(
+                              context,
+                              orgId: orgId,
+                              projectId: project.id,
+                              projectName: project.name,
+                            );
                           case 'archive':
                             await ref
                                 .read(apiClientProvider)
@@ -101,6 +118,11 @@ class ProjectList extends ConsumerWidget {
                           const PopupMenuItem(
                             value: 'onboard',
                             child: Text('Clone & detect'),
+                          ),
+                        if (hasRepo)
+                          const PopupMenuItem(
+                            value: 'health',
+                            child: Text('Health reports'),
                           ),
                         if (!isArchived)
                           const PopupMenuItem(
@@ -150,6 +172,31 @@ class ProjectList extends ConsumerWidget {
       messenger.showSnackBar(
         SnackBar(content: Text('Onboarding failed: ${e.body}')),
       );
+    }
+  }
+
+  Future<void> _checkAll(
+    BuildContext context,
+    WidgetRef ref,
+    String orgId,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Running health checks...')),
+    );
+    try {
+      final results = await ref
+          .read(apiClientProvider)
+          .runOrgHealthCheck(orgId);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Checked ${results.length} project(s)')),
+      );
+    } on ApiException catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Health check run failed: ${e.body}')),
+      );
+    } finally {
+      ref.invalidate(projectListProvider(orgId));
     }
   }
 

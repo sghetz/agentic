@@ -1775,11 +1775,25 @@ class $ArtifactsTable extends Artifacts
   late final GeneratedColumn<String> taskId = GeneratedColumn<String>(
     'task_id',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'REFERENCES tasks (id)',
+    ),
+  );
+  static const VerificationMeta _projectIdMeta = const VerificationMeta(
+    'projectId',
+  );
+  @override
+  late final GeneratedColumn<String> projectId = GeneratedColumn<String>(
+    'project_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES projects (id)',
     ),
   );
   @override
@@ -1799,6 +1813,17 @@ class $ArtifactsTable extends Artifacts
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentMeta = const VerificationMeta(
+    'content',
+  );
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+    'content',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _versionMeta = const VerificationMeta(
     'version',
@@ -1826,8 +1851,10 @@ class $ArtifactsTable extends Artifacts
   List<GeneratedColumn> get $columns => [
     id,
     taskId,
+    projectId,
     kind,
     uri,
+    content,
     version,
     createdAt,
   ];
@@ -1853,8 +1880,12 @@ class $ArtifactsTable extends Artifacts
         _taskIdMeta,
         taskId.isAcceptableOrUnknown(data['task_id']!, _taskIdMeta),
       );
-    } else if (isInserting) {
-      context.missing(_taskIdMeta);
+    }
+    if (data.containsKey('project_id')) {
+      context.handle(
+        _projectIdMeta,
+        projectId.isAcceptableOrUnknown(data['project_id']!, _projectIdMeta),
+      );
     }
     if (data.containsKey('uri')) {
       context.handle(
@@ -1863,6 +1894,12 @@ class $ArtifactsTable extends Artifacts
       );
     } else if (isInserting) {
       context.missing(_uriMeta);
+    }
+    if (data.containsKey('content')) {
+      context.handle(
+        _contentMeta,
+        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
+      );
     }
     if (data.containsKey('version')) {
       context.handle(
@@ -1896,7 +1933,11 @@ class $ArtifactsTable extends Artifacts
       taskId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}task_id'],
-      )!,
+      ),
+      projectId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}project_id'],
+      ),
       kind: $ArtifactsTable.$converterkind.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -1907,6 +1948,10 @@ class $ArtifactsTable extends Artifacts
         DriftSqlType.string,
         data['${effectivePrefix}uri'],
       )!,
+      content: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content'],
+      ),
       version: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}version'],
@@ -1929,16 +1974,20 @@ class $ArtifactsTable extends Artifacts
 
 class ArtifactRow extends DataClass implements Insertable<ArtifactRow> {
   final String id;
-  final String taskId;
+  final String? taskId;
+  final String? projectId;
   final ArtifactKind kind;
   final String uri;
+  final String? content;
   final int version;
   final DateTime createdAt;
   const ArtifactRow({
     required this.id,
-    required this.taskId,
+    this.taskId,
+    this.projectId,
     required this.kind,
     required this.uri,
+    this.content,
     required this.version,
     required this.createdAt,
   });
@@ -1946,13 +1995,21 @@ class ArtifactRow extends DataClass implements Insertable<ArtifactRow> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['task_id'] = Variable<String>(taskId);
+    if (!nullToAbsent || taskId != null) {
+      map['task_id'] = Variable<String>(taskId);
+    }
+    if (!nullToAbsent || projectId != null) {
+      map['project_id'] = Variable<String>(projectId);
+    }
     {
       map['kind'] = Variable<String>(
         $ArtifactsTable.$converterkind.toSql(kind),
       );
     }
     map['uri'] = Variable<String>(uri);
+    if (!nullToAbsent || content != null) {
+      map['content'] = Variable<String>(content);
+    }
     map['version'] = Variable<int>(version);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
@@ -1961,9 +2018,17 @@ class ArtifactRow extends DataClass implements Insertable<ArtifactRow> {
   ArtifactsCompanion toCompanion(bool nullToAbsent) {
     return ArtifactsCompanion(
       id: Value(id),
-      taskId: Value(taskId),
+      taskId: taskId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taskId),
+      projectId: projectId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(projectId),
       kind: Value(kind),
       uri: Value(uri),
+      content: content == null && nullToAbsent
+          ? const Value.absent()
+          : Value(content),
       version: Value(version),
       createdAt: Value(createdAt),
     );
@@ -1976,11 +2041,13 @@ class ArtifactRow extends DataClass implements Insertable<ArtifactRow> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ArtifactRow(
       id: serializer.fromJson<String>(json['id']),
-      taskId: serializer.fromJson<String>(json['taskId']),
+      taskId: serializer.fromJson<String?>(json['taskId']),
+      projectId: serializer.fromJson<String?>(json['projectId']),
       kind: $ArtifactsTable.$converterkind.fromJson(
         serializer.fromJson<String>(json['kind']),
       ),
       uri: serializer.fromJson<String>(json['uri']),
+      content: serializer.fromJson<String?>(json['content']),
       version: serializer.fromJson<int>(json['version']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -1990,11 +2057,13 @@ class ArtifactRow extends DataClass implements Insertable<ArtifactRow> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'taskId': serializer.toJson<String>(taskId),
+      'taskId': serializer.toJson<String?>(taskId),
+      'projectId': serializer.toJson<String?>(projectId),
       'kind': serializer.toJson<String>(
         $ArtifactsTable.$converterkind.toJson(kind),
       ),
       'uri': serializer.toJson<String>(uri),
+      'content': serializer.toJson<String?>(content),
       'version': serializer.toJson<int>(version),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -2002,16 +2071,20 @@ class ArtifactRow extends DataClass implements Insertable<ArtifactRow> {
 
   ArtifactRow copyWith({
     String? id,
-    String? taskId,
+    Value<String?> taskId = const Value.absent(),
+    Value<String?> projectId = const Value.absent(),
     ArtifactKind? kind,
     String? uri,
+    Value<String?> content = const Value.absent(),
     int? version,
     DateTime? createdAt,
   }) => ArtifactRow(
     id: id ?? this.id,
-    taskId: taskId ?? this.taskId,
+    taskId: taskId.present ? taskId.value : this.taskId,
+    projectId: projectId.present ? projectId.value : this.projectId,
     kind: kind ?? this.kind,
     uri: uri ?? this.uri,
+    content: content.present ? content.value : this.content,
     version: version ?? this.version,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -2019,8 +2092,10 @@ class ArtifactRow extends DataClass implements Insertable<ArtifactRow> {
     return ArtifactRow(
       id: data.id.present ? data.id.value : this.id,
       taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      projectId: data.projectId.present ? data.projectId.value : this.projectId,
       kind: data.kind.present ? data.kind.value : this.kind,
       uri: data.uri.present ? data.uri.value : this.uri,
+      content: data.content.present ? data.content.value : this.content,
       version: data.version.present ? data.version.value : this.version,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -2031,8 +2106,10 @@ class ArtifactRow extends DataClass implements Insertable<ArtifactRow> {
     return (StringBuffer('ArtifactRow(')
           ..write('id: $id, ')
           ..write('taskId: $taskId, ')
+          ..write('projectId: $projectId, ')
           ..write('kind: $kind, ')
           ..write('uri: $uri, ')
+          ..write('content: $content, ')
           ..write('version: $version, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -2040,46 +2117,62 @@ class ArtifactRow extends DataClass implements Insertable<ArtifactRow> {
   }
 
   @override
-  int get hashCode => Object.hash(id, taskId, kind, uri, version, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    taskId,
+    projectId,
+    kind,
+    uri,
+    content,
+    version,
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ArtifactRow &&
           other.id == this.id &&
           other.taskId == this.taskId &&
+          other.projectId == this.projectId &&
           other.kind == this.kind &&
           other.uri == this.uri &&
+          other.content == this.content &&
           other.version == this.version &&
           other.createdAt == this.createdAt);
 }
 
 class ArtifactsCompanion extends UpdateCompanion<ArtifactRow> {
   final Value<String> id;
-  final Value<String> taskId;
+  final Value<String?> taskId;
+  final Value<String?> projectId;
   final Value<ArtifactKind> kind;
   final Value<String> uri;
+  final Value<String?> content;
   final Value<int> version;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const ArtifactsCompanion({
     this.id = const Value.absent(),
     this.taskId = const Value.absent(),
+    this.projectId = const Value.absent(),
     this.kind = const Value.absent(),
     this.uri = const Value.absent(),
+    this.content = const Value.absent(),
     this.version = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ArtifactsCompanion.insert({
     required String id,
-    required String taskId,
+    this.taskId = const Value.absent(),
+    this.projectId = const Value.absent(),
     required ArtifactKind kind,
     required String uri,
+    this.content = const Value.absent(),
     required int version,
     required DateTime createdAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
-       taskId = Value(taskId),
        kind = Value(kind),
        uri = Value(uri),
        version = Value(version),
@@ -2087,8 +2180,10 @@ class ArtifactsCompanion extends UpdateCompanion<ArtifactRow> {
   static Insertable<ArtifactRow> custom({
     Expression<String>? id,
     Expression<String>? taskId,
+    Expression<String>? projectId,
     Expression<String>? kind,
     Expression<String>? uri,
+    Expression<String>? content,
     Expression<int>? version,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -2096,8 +2191,10 @@ class ArtifactsCompanion extends UpdateCompanion<ArtifactRow> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (taskId != null) 'task_id': taskId,
+      if (projectId != null) 'project_id': projectId,
       if (kind != null) 'kind': kind,
       if (uri != null) 'uri': uri,
+      if (content != null) 'content': content,
       if (version != null) 'version': version,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -2106,9 +2203,11 @@ class ArtifactsCompanion extends UpdateCompanion<ArtifactRow> {
 
   ArtifactsCompanion copyWith({
     Value<String>? id,
-    Value<String>? taskId,
+    Value<String?>? taskId,
+    Value<String?>? projectId,
     Value<ArtifactKind>? kind,
     Value<String>? uri,
+    Value<String?>? content,
     Value<int>? version,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -2116,8 +2215,10 @@ class ArtifactsCompanion extends UpdateCompanion<ArtifactRow> {
     return ArtifactsCompanion(
       id: id ?? this.id,
       taskId: taskId ?? this.taskId,
+      projectId: projectId ?? this.projectId,
       kind: kind ?? this.kind,
       uri: uri ?? this.uri,
+      content: content ?? this.content,
       version: version ?? this.version,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -2133,6 +2234,9 @@ class ArtifactsCompanion extends UpdateCompanion<ArtifactRow> {
     if (taskId.present) {
       map['task_id'] = Variable<String>(taskId.value);
     }
+    if (projectId.present) {
+      map['project_id'] = Variable<String>(projectId.value);
+    }
     if (kind.present) {
       map['kind'] = Variable<String>(
         $ArtifactsTable.$converterkind.toSql(kind.value),
@@ -2140,6 +2244,9 @@ class ArtifactsCompanion extends UpdateCompanion<ArtifactRow> {
     }
     if (uri.present) {
       map['uri'] = Variable<String>(uri.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
     }
     if (version.present) {
       map['version'] = Variable<int>(version.value);
@@ -2158,8 +2265,10 @@ class ArtifactsCompanion extends UpdateCompanion<ArtifactRow> {
     return (StringBuffer('ArtifactsCompanion(')
           ..write('id: $id, ')
           ..write('taskId: $taskId, ')
+          ..write('projectId: $projectId, ')
           ..write('kind: $kind, ')
           ..write('uri: $uri, ')
+          ..write('content: $content, ')
           ..write('version: $version, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -2241,6 +2350,24 @@ final class $$ProjectsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$ArtifactsTable, List<ArtifactRow>>
+  _artifactsRefsTable(_$OrgDatabase db) => MultiTypedResultKey.fromTable(
+    db.artifacts,
+    aliasName: 'projects__id__artifacts__project_id',
+  );
+
+  $$ArtifactsTableProcessedTableManager get artifactsRefs {
+    final manager = $$ArtifactsTableTableManager(
+      $_db,
+      $_db.artifacts,
+    ).filter((f) => f.projectId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_artifactsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$ProjectsTableFilterComposer
@@ -2314,6 +2441,31 @@ class $$ProjectsTableFilterComposer
           }) => $$TasksTableFilterComposer(
             $db: $db,
             $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> artifactsRefs(
+    Expression<bool> Function($$ArtifactsTableFilterComposer f) f,
+  ) {
+    final $$ArtifactsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.artifacts,
+      getReferencedColumn: (t) => t.projectId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ArtifactsTableFilterComposer(
+            $db: $db,
+            $table: $db.artifacts,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2445,6 +2597,31 @@ class $$ProjectsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> artifactsRefs<T extends Object>(
+    Expression<T> Function($$ArtifactsTableAnnotationComposer a) f,
+  ) {
+    final $$ArtifactsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.artifacts,
+      getReferencedColumn: (t) => t.projectId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ArtifactsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.artifacts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ProjectsTableTableManager
@@ -2460,7 +2637,7 @@ class $$ProjectsTableTableManager
           $$ProjectsTableUpdateCompanionBuilder,
           (ProjectRow, $$ProjectsTableReferences),
           ProjectRow,
-          PrefetchHooks Function({bool tasksRefs})
+          PrefetchHooks Function({bool tasksRefs, bool artifactsRefs})
         > {
   $$ProjectsTableTableManager(_$OrgDatabase db, $ProjectsTable table)
     : super(
@@ -2529,10 +2706,13 @@ class $$ProjectsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({tasksRefs = false}) {
+          prefetchHooksCallback: ({tasksRefs = false, artifactsRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (tasksRefs) db.tasks],
+              explicitlyWatchedTables: [
+                if (tasksRefs) db.tasks,
+                if (artifactsRefs) db.artifacts,
+              ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
@@ -2547,6 +2727,24 @@ class $$ProjectsTableTableManager
                           ._tasksRefsTable(db),
                       managerFromTypedResult: (p0) =>
                           $$ProjectsTableReferences(db, table, p0).tasksRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.projectId == item.id),
+                      typedResults: items,
+                    ),
+                  if (artifactsRefs)
+                    await $_getPrefetchedData<
+                      ProjectRow,
+                      $ProjectsTable,
+                      ArtifactRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ProjectsTableReferences
+                          ._artifactsRefsTable(db),
+                      managerFromTypedResult: (p0) => $$ProjectsTableReferences(
+                        db,
+                        table,
+                        p0,
+                      ).artifactsRefs,
                       referencedItemsForCurrentItem: (item, referencedItems) =>
                           referencedItems.where((e) => e.projectId == item.id),
                       typedResults: items,
@@ -2571,7 +2769,7 @@ typedef $$ProjectsTableProcessedTableManager =
       $$ProjectsTableUpdateCompanionBuilder,
       (ProjectRow, $$ProjectsTableReferences),
       ProjectRow,
-      PrefetchHooks Function({bool tasksRefs})
+      PrefetchHooks Function({bool tasksRefs, bool artifactsRefs})
     >;
 typedef $$ProjectLinksTableCreateCompanionBuilder =
     ProjectLinksCompanion Function({
@@ -3839,9 +4037,11 @@ typedef $$TaskEventsTableProcessedTableManager =
 typedef $$ArtifactsTableCreateCompanionBuilder =
     ArtifactsCompanion Function({
       required String id,
-      required String taskId,
+      Value<String?> taskId,
+      Value<String?> projectId,
       required ArtifactKind kind,
       required String uri,
+      Value<String?> content,
       required int version,
       required DateTime createdAt,
       Value<int> rowid,
@@ -3849,9 +4049,11 @@ typedef $$ArtifactsTableCreateCompanionBuilder =
 typedef $$ArtifactsTableUpdateCompanionBuilder =
     ArtifactsCompanion Function({
       Value<String> id,
-      Value<String> taskId,
+      Value<String?> taskId,
+      Value<String?> projectId,
       Value<ArtifactKind> kind,
       Value<String> uri,
+      Value<String?> content,
       Value<int> version,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -3864,14 +4066,31 @@ final class $$ArtifactsTableReferences
   static $TasksTable _taskIdTable(_$OrgDatabase db) =>
       db.tasks.createAlias('artifacts__task_id__tasks__id');
 
-  $$TasksTableProcessedTableManager get taskId {
-    final $_column = $_itemColumn<String>('task_id')!;
-
+  $$TasksTableProcessedTableManager? get taskId {
+    final $_column = $_itemColumn<String>('task_id');
+    if ($_column == null) return null;
     final manager = $$TasksTableTableManager(
       $_db,
       $_db.tasks,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_taskIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ProjectsTable _projectIdTable(_$OrgDatabase db) =>
+      db.projects.createAlias('artifacts__project_id__projects__id');
+
+  $$ProjectsTableProcessedTableManager? get projectId {
+    final $_column = $_itemColumn<String>('project_id');
+    if ($_column == null) return null;
+    final manager = $$ProjectsTableTableManager(
+      $_db,
+      $_db.projects,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_projectIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -3901,6 +4120,11 @@ class $$ArtifactsTableFilterComposer
 
   ColumnFilters<String> get uri => $composableBuilder(
     column: $table.uri,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get content => $composableBuilder(
+    column: $table.content,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3936,6 +4160,29 @@ class $$ArtifactsTableFilterComposer
     );
     return composer;
   }
+
+  $$ProjectsTableFilterComposer get projectId {
+    final $$ProjectsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.projectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableFilterComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ArtifactsTableOrderingComposer
@@ -3959,6 +4206,11 @@ class $$ArtifactsTableOrderingComposer
 
   ColumnOrderings<String> get uri => $composableBuilder(
     column: $table.uri,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get content => $composableBuilder(
+    column: $table.content,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3994,6 +4246,29 @@ class $$ArtifactsTableOrderingComposer
     );
     return composer;
   }
+
+  $$ProjectsTableOrderingComposer get projectId {
+    final $$ProjectsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.projectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableOrderingComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ArtifactsTableAnnotationComposer
@@ -4013,6 +4288,9 @@ class $$ArtifactsTableAnnotationComposer
 
   GeneratedColumn<String> get uri =>
       $composableBuilder(column: $table.uri, builder: (column) => column);
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
 
   GeneratedColumn<int> get version =>
       $composableBuilder(column: $table.version, builder: (column) => column);
@@ -4042,6 +4320,29 @@ class $$ArtifactsTableAnnotationComposer
     );
     return composer;
   }
+
+  $$ProjectsTableAnnotationComposer get projectId {
+    final $$ProjectsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.projectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ArtifactsTableTableManager
@@ -4057,7 +4358,7 @@ class $$ArtifactsTableTableManager
           $$ArtifactsTableUpdateCompanionBuilder,
           (ArtifactRow, $$ArtifactsTableReferences),
           ArtifactRow,
-          PrefetchHooks Function({bool taskId})
+          PrefetchHooks Function({bool taskId, bool projectId})
         > {
   $$ArtifactsTableTableManager(_$OrgDatabase db, $ArtifactsTable table)
     : super(
@@ -4073,17 +4374,21 @@ class $$ArtifactsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
-                Value<String> taskId = const Value.absent(),
+                Value<String?> taskId = const Value.absent(),
+                Value<String?> projectId = const Value.absent(),
                 Value<ArtifactKind> kind = const Value.absent(),
                 Value<String> uri = const Value.absent(),
+                Value<String?> content = const Value.absent(),
                 Value<int> version = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ArtifactsCompanion(
                 id: id,
                 taskId: taskId,
+                projectId: projectId,
                 kind: kind,
                 uri: uri,
+                content: content,
                 version: version,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -4091,17 +4396,21 @@ class $$ArtifactsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
-                required String taskId,
+                Value<String?> taskId = const Value.absent(),
+                Value<String?> projectId = const Value.absent(),
                 required ArtifactKind kind,
                 required String uri,
+                Value<String?> content = const Value.absent(),
                 required int version,
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => ArtifactsCompanion.insert(
                 id: id,
                 taskId: taskId,
+                projectId: projectId,
                 kind: kind,
                 uri: uri,
+                content: content,
                 version: version,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -4114,7 +4423,7 @@ class $$ArtifactsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({taskId = false}) {
+          prefetchHooksCallback: ({taskId = false, projectId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -4147,6 +4456,19 @@ class $$ArtifactsTableTableManager
                               )
                               as T;
                     }
+                    if (projectId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.projectId,
+                                referencedTable: $$ArtifactsTableReferences
+                                    ._projectIdTable(db),
+                                referencedColumn: $$ArtifactsTableReferences
+                                    ._projectIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
 
                     return state;
                   },
@@ -4171,7 +4493,7 @@ typedef $$ArtifactsTableProcessedTableManager =
       $$ArtifactsTableUpdateCompanionBuilder,
       (ArtifactRow, $$ArtifactsTableReferences),
       ArtifactRow,
-      PrefetchHooks Function({bool taskId})
+      PrefetchHooks Function({bool taskId, bool projectId})
     >;
 
 class $OrgDatabaseManager {

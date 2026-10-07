@@ -5,4 +5,5 @@ enum TaskEventType {
   reopened,
   artifactAttached,
   edited,
+  assigned,
 }

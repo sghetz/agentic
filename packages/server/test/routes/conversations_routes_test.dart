@@ -220,7 +220,7 @@ void main() {
     });
 
     test(
-      'the org-level general channel does not trigger a reply (not wired yet)',
+      'an unrecognized agent role does not trigger a reply (not wired)',
       () async {
         var invoked = false;
         final (_, h, org, _) = await setUpWith(
@@ -237,7 +237,7 @@ void main() {
         final (_, convBody) = await send(
           h,
           'GET',
-          '/orgs/$org/conversations?channel=general',
+          '/orgs/$org/conversations?channel=agent:some-future-role',
         );
         final conversationId = (convBody! as Map)['id'] as String;
 
@@ -257,5 +257,156 @@ void main() {
         expect((listBody! as List), hasLength(1));
       },
     );
+
+    test('the other agent roles (Analyst, Creative, Developer, Reviewer, '
+        'Librarian) are wired to a real turn too', () async {
+      for (final role in [
+        'analyst',
+        'creative',
+        'developer',
+        'reviewer',
+        'librarian',
+      ]) {
+        final (_, h, org, proj) = await setUpWith(
+          ClaudeConversationService(
+            invoker: (args, {required workingDirectory}) =>
+                Stream.fromIterable([
+                  jsonEncode({'type': 'result', 'result': 'ack from $role'}),
+                ]),
+          ),
+        );
+
+        final (_, convBody) = await send(
+          h,
+          'GET',
+          '/orgs/$org/conversations?channel=agent:$role&projectId=$proj',
+        );
+        final conversationId = (convBody! as Map)['id'] as String;
+
+        await send(
+          h,
+          'POST',
+          '/orgs/$org/conversations/$conversationId/messages',
+          json: {'content': 'hello'},
+        );
+
+        final (_, listBody) = await send(
+          h,
+          'GET',
+          '/orgs/$org/conversations/$conversationId/messages',
+        );
+        final messages = listBody! as List;
+        expect(messages, hasLength(2), reason: 'role: $role');
+        expect(
+          (messages[1] as Map)['sender'],
+          'agent:$role',
+          reason: 'role: $role',
+        );
+        expect(
+          (messages[1] as Map)['content'],
+          'ack from $role',
+          reason: 'role: $role',
+        );
+      }
+    });
+  });
+
+  group('Orchestrator agent reply wiring', () {
+    Future<(Handler, String, String)> setUpWith(
+      ClaudeConversationService conversationService,
+    ) async {
+      final context = buildTestContext(
+        conversationService: conversationService,
+      );
+      final h = buildHandler(context);
+      final org = await createOrg(h, slug: 'orchestrator-wiring-org');
+      final proj = await createProject(
+        h,
+        org,
+        slug: 'orchestrator-wiring-proj',
+      );
+      return (h, org, proj);
+    }
+
+    test(
+      'a message to the org-level general channel gets an Orchestrator reply',
+      () async {
+        final calls = <List<String>>[];
+        final (h, org, proj) = await setUpWith(
+          ClaudeConversationService(
+            invoker: (args, {required workingDirectory}) {
+              calls.add(args);
+              return Stream.fromIterable([
+                jsonEncode({'type': 'result', 'result': "I've got it."}),
+              ]);
+            },
+          ),
+        );
+
+        final (_, convBody) = await send(
+          h,
+          'GET',
+          '/orgs/$org/conversations?channel=general',
+        );
+        final conversationId = (convBody! as Map)['id'] as String;
+
+        await send(
+          h,
+          'POST',
+          '/orgs/$org/conversations/$conversationId/messages',
+          json: {'content': 'add a task to fix the login bug'},
+        );
+
+        final (_, listBody) = await send(
+          h,
+          'GET',
+          '/orgs/$org/conversations/$conversationId/messages',
+        );
+        final messages = listBody! as List;
+        expect(messages, hasLength(2));
+        expect((messages[1] as Map)['sender'], 'agent:orchestrator');
+        expect((messages[1] as Map)['content'], "I've got it.");
+
+        expect(calls, hasLength(1));
+        final args = calls.single;
+        expect(args, contains('--mcp-config'));
+        expect(args, contains('--strict-mcp-config'));
+        final systemPromptIndex = args.indexOf('--append-system-prompt');
+        expect(args[systemPromptIndex + 1], contains(proj));
+      },
+    );
+
+    test("a project-scoped General channel's MCP config is still org-wide, "
+        'not limited to that project', () async {
+      final (h, org, proj) = await setUpWith(
+        ClaudeConversationService(
+          invoker: (args, {required workingDirectory}) => Stream.fromIterable([
+            jsonEncode({'type': 'result', 'result': 'ok'}),
+          ]),
+        ),
+      );
+
+      final (_, convBody) = await send(
+        h,
+        'GET',
+        '/orgs/$org/conversations?channel=general&projectId=$proj',
+      );
+      final conversationId = (convBody! as Map)['id'] as String;
+
+      final (status, _) = await send(
+        h,
+        'POST',
+        '/orgs/$org/conversations/$conversationId/messages',
+        json: {'content': 'what is this project called?'},
+      );
+
+      expect(status, 201);
+      final (_, listBody) = await send(
+        h,
+        'GET',
+        '/orgs/$org/conversations/$conversationId/messages',
+      );
+      expect((listBody! as List), hasLength(2));
+    });
   });
 }

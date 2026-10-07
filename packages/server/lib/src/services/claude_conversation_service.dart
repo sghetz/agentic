@@ -65,13 +65,20 @@ class ClaudeStreamResult extends ClaudeStreamEvent {
 /// then a single [ClaudeStreamResult] once the CLI's own final `result`
 /// line arrives with the full text and the session id to persist.
 ///
-/// Session continuity, system-prompt resending, `workingDirectory`, and
-/// the lack of tool access all carry the same reasoning as before (see
-/// `docs/PHASE_2_SPEC.md`) -- only the transport changed, not the turn
-/// semantics. Best-effort: a stream that errors, is truncated, or never
-/// produces a `result` line simply yields no [ClaudeStreamResult] -- the
-/// caller is responsible for treating "no result" as "no reply", not a
-/// broken chat.
+/// `systemPrompt` is built by the caller (see `role_prompts.dart`) rather
+/// than switched on internally, since a role's prompt can depend on data
+/// this service has no business knowing (e.g. the Orchestrator's list of
+/// projects in the org) -- this service only knows how to run one CLI turn.
+/// `mcpConfigJson` is an inline `--mcp-config` JSON string (the CLI accepts
+/// a literal string or a file path there); when present, `--strict-mcp-config`
+/// is always added too, since `--tools ""` alone doesn't hide ambient MCP
+/// servers configured globally on the machine (confirmed live). Session
+/// continuity, system-prompt resending, and `workingDirectory` all carry the
+/// same reasoning as before (see `docs/PHASE_2_SPEC.md`) -- only the
+/// transport changed, not the turn semantics. Best-effort: a stream that
+/// errors, is truncated, or never produces a `result` line simply yields no
+/// [ClaudeStreamResult] -- the caller is responsible for treating "no
+/// result" as "no reply", not a broken chat.
 class ClaudeConversationService {
   const ClaudeConversationService({
     ChatClaudeStreamInvoker invoker = _defaultChatClaudeStreamInvoker,
@@ -84,10 +91,12 @@ class ClaudeConversationService {
   final Duration timeout;
 
   Stream<ClaudeStreamEvent> replyStream({
-    required String role,
+    required String systemPrompt,
     required String userMessage,
     required String workingDirectory,
     String? existingSessionId,
+    String? mcpConfigJson,
+    List<String>? allowedTools,
   }) async* {
     final sessionId = existingSessionId ?? core.newId();
     final args = [
@@ -98,9 +107,24 @@ class ClaudeConversationService {
       '--include-partial-messages',
       '--verbose',
       '--append-system-prompt',
-      _systemPromptFor(role),
+      systemPrompt,
       '--tools',
       '',
+      if (mcpConfigJson != null) ...[
+        '--mcp-config',
+        mcpConfigJson,
+        // Only the one MCP server we just passed should ever be visible --
+        // confirmed live that --tools "" alone doesn't hide ambient MCP
+        // servers configured globally on the machine.
+        '--strict-mcp-config',
+      ],
+      // MCP tools still go through the normal permission system even from a
+      // --strict-mcp-config server -- confirmed live that without this,
+      // every call_tool is silently blocked in non-interactive `-p` mode.
+      if (allowedTools != null && allowedTools.isNotEmpty) ...[
+        '--allowedTools',
+        allowedTools.join(' '),
+      ],
       '--model',
       model,
       if (existingSessionId == null) ...[
@@ -153,13 +177,4 @@ class ClaudeConversationService {
     if (delta?['type'] != 'text_delta') return null;
     return delta!['text'] as String?;
   }
-
-  String _systemPromptFor(String role) => switch (role) {
-    'health' =>
-      'You are the Health agent in Agentic, a personal AI dev-team tool. '
-          'You know this project\'s build/lint/test pipeline and recent Health '
-          'Reports. Answer the owner\'s questions about this project\'s health '
-          'concisely; you are not editing any files in this conversation.',
-    _ => 'You are an AI agent assisting the owner with this project.',
-  };
 }

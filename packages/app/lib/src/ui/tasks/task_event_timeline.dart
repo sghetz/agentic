@@ -51,6 +51,7 @@ class _TimelineTile extends StatelessWidget {
     core.TaskEventType.reopened => Icons.replay,
     core.TaskEventType.artifactAttached => Icons.attach_file,
     core.TaskEventType.edited => Icons.edit_outlined,
+    core.TaskEventType.assigned => Icons.person_add_alt,
   };
 
   static String _summaryFor(core.TaskEvent event) {
@@ -72,6 +73,9 @@ class _TimelineTile extends StatelessWidget {
       case core.TaskEventType.edited:
         final field = event.payload['field'] as String?;
         return field == null ? 'Edited' : 'Edited $field';
+      case core.TaskEventType.assigned:
+        final role = event.payload['role'] as String?;
+        return role == null ? 'Assigned' : 'Assigned to $role';
     }
   }
 

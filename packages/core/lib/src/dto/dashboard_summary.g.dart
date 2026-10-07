@@ -35,6 +35,7 @@ const _$TaskEventTypeEnumMap = {
   TaskEventType.reopened: 'reopened',
   TaskEventType.artifactAttached: 'artifactAttached',
   TaskEventType.edited: 'edited',
+  TaskEventType.assigned: 'assigned',
 };
 
 _DashboardOrgSummary _$DashboardOrgSummaryFromJson(

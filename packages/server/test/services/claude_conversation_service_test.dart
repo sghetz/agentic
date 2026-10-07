@@ -37,7 +37,7 @@ void main() {
 
       final events = await service
           .replyStream(
-            role: 'health',
+            systemPrompt: 'health prompt',
             userMessage: 'hi',
             workingDirectory: '/tmp',
           )
@@ -60,7 +60,7 @@ void main() {
 
       final events = await service
           .replyStream(
-            role: 'health',
+            systemPrompt: 'health prompt',
             userMessage: 'hi',
             workingDirectory: '/tmp',
           )
@@ -83,7 +83,7 @@ void main() {
 
         final events = await service
             .replyStream(
-              role: 'health',
+              systemPrompt: 'health prompt',
               userMessage: 'hi',
               workingDirectory: '/tmp',
             )
@@ -110,7 +110,7 @@ void main() {
 
       final events = await service
           .replyStream(
-            role: 'health',
+            systemPrompt: 'health prompt',
             userMessage: 'and now?',
             workingDirectory: '/tmp',
             existingSessionId: 'session-123',
@@ -134,7 +134,7 @@ void main() {
 
       await service
           .replyStream(
-            role: 'health',
+            systemPrompt: 'health prompt',
             userMessage: 'hi',
             workingDirectory: '/tmp',
           )
@@ -148,6 +148,82 @@ void main() {
       expect(capturedArgs, contains('--include-partial-messages'));
     });
 
+    test('passes --mcp-config and --strict-mcp-config when given', () async {
+      List<String>? capturedArgs;
+      final service = ClaudeConversationService(
+        invoker: (args, {required workingDirectory}) {
+          capturedArgs = args;
+          return Stream.fromIterable([_resultLine('ok')]);
+        },
+      );
+
+      await service
+          .replyStream(
+            systemPrompt: 'orchestrator prompt',
+            userMessage: 'hi',
+            workingDirectory: '/tmp',
+            mcpConfigJson: '{"mcpServers":{}}',
+          )
+          .toList();
+
+      expect(
+        capturedArgs,
+        containsAllInOrder(['--mcp-config', '{"mcpServers":{}}']),
+      );
+      expect(capturedArgs, contains('--strict-mcp-config'));
+    });
+
+    test('omits --mcp-config/--allowedTools when not given', () async {
+      List<String>? capturedArgs;
+      final service = ClaudeConversationService(
+        invoker: (args, {required workingDirectory}) {
+          capturedArgs = args;
+          return Stream.fromIterable([_resultLine('ok')]);
+        },
+      );
+
+      await service
+          .replyStream(
+            systemPrompt: 'health prompt',
+            userMessage: 'hi',
+            workingDirectory: '/tmp',
+          )
+          .toList();
+
+      expect(capturedArgs, isNot(contains('--mcp-config')));
+      expect(capturedArgs, isNot(contains('--strict-mcp-config')));
+      expect(capturedArgs, isNot(contains('--allowedTools')));
+    });
+
+    test('joins allowedTools into one --allowedTools argument', () async {
+      List<String>? capturedArgs;
+      final service = ClaudeConversationService(
+        invoker: (args, {required workingDirectory}) {
+          capturedArgs = args;
+          return Stream.fromIterable([_resultLine('ok')]);
+        },
+      );
+
+      await service
+          .replyStream(
+            systemPrompt: 'orchestrator prompt',
+            userMessage: 'hi',
+            workingDirectory: '/tmp',
+            allowedTools: const [
+              'mcp__task-board__create_task',
+              'mcp__task-board__list_tasks',
+            ],
+          )
+          .toList();
+
+      final index = capturedArgs!.indexOf('--allowedTools');
+      expect(index, greaterThanOrEqualTo(0));
+      expect(
+        capturedArgs![index + 1],
+        'mcp__task-board__create_task mcp__task-board__list_tasks',
+      );
+    });
+
     test('passes the given working directory through to the invoker', () async {
       String? capturedCwd;
       final service = ClaudeConversationService(
@@ -159,7 +235,7 @@ void main() {
 
       await service
           .replyStream(
-            role: 'health',
+            systemPrompt: 'health prompt',
             userMessage: 'hi',
             workingDirectory: '/some/repo/path',
           )
@@ -176,7 +252,7 @@ void main() {
 
       final events = await service
           .replyStream(
-            role: 'health',
+            systemPrompt: 'health prompt',
             userMessage: 'hi',
             workingDirectory: '/tmp',
           )
@@ -196,7 +272,7 @@ void main() {
 
         final events = await service
             .replyStream(
-              role: 'health',
+              systemPrompt: 'health prompt',
               userMessage: 'hi',
               workingDirectory: '/tmp',
             )
@@ -214,7 +290,7 @@ void main() {
 
       final events = await service
           .replyStream(
-            role: 'health',
+            systemPrompt: 'health prompt',
             userMessage: 'hi',
             workingDirectory: '/tmp',
           )

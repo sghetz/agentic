@@ -177,5 +177,6 @@ class _ActivityRow extends StatelessWidget {
     core.TaskEventType.reopened => 'reopened',
     core.TaskEventType.artifactAttached => 'attached an artifact to',
     core.TaskEventType.edited => 'edited',
+    core.TaskEventType.assigned => 'assigned',
   };
 }

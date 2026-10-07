@@ -12,6 +12,7 @@ dependencies:
   shelf: ^1.4.2
   shelf_router: ^1.1.4
   shelf_web_socket: ^3.0.0
+  dart_mcp: ^0.5.2
   stream_channel: ^2.1.2
   drift: ^2.35.1
   sqlite3: ^3.7.0

@@ -40,8 +40,26 @@ from chat.
   server is spawned per Claude Code CLI call with the relevant org/project IDs passed in explicitly
   (args or env), so it can only ever reach that one org's database -- preserves the org-isolation
   rule the same way every other service does.
-- **MCP server package**: pick an MCP SDK from pub.dev when slice 4 starts (prefer an official/
-  actively maintained one); not pinned yet since it isn't needed until then.
+- **MCP server package**: `package:dart_mcp` (`labs.dart.dev`, the official Dart Labs package --
+  same foundation as the `dart mcp-server` Flutter tooling CLAUDE.md already references). Extend
+  `MCPServer` with the `ToolsSupport` mixin; register tools in an `initialize()` override;
+  `stdioChannel(input: stdin, output: stdout)` wires it to a subprocess's stdio.
+- **MCP tools still need `--allowedTools`.** Confirmed live: even with `--mcp-config` +
+  `--strict-mcp-config` scoping the Orchestrator to exactly one MCP server, every tool call was
+  silently blocked in non-interactive `-p` mode -- MCP tools go through the CLI's normal
+  permission system, and there's no human to approve a prompt there. Fixed by passing
+  `--allowedTools mcp__task-board__create_task mcp__task-board__list_tasks
+  mcp__task-board__assign_task` (the `mcp__<server>__<tool>` naming is the CLI's own permission-name
+  format). Verified live end-to-end afterward: create_task, assign_task, and list_tasks all worked
+  for real, including a second turn that correctly remembered the first turn's task id via
+  `--resume` session continuity.
+- **A new enum value needs a core codegen rebuild, not just the source edit.** Adding
+  `TaskEventType.assigned` (needed for `assign_task`) without rerunning `build_runner` in
+  `packages/core` left the generated json_serializable enum map missing that one entry --
+  `TaskEvent.toJson()` compiled fine and every *existing* test still passed (none of them exercised
+  the new value), but calling it live threw a null-check error. Caught live, fixed by rebuilding
+  core's codegen; a new round-trip test now iterates every `TaskEventType` value specifically to
+  catch this class of bug before it reaches a live run again.
 - **`workingDirectory` matters beyond file access.** Claude Code auto-includes cwd/git-status/
   CLAUDE.md context in its system prompt by default, even with `--tools ""`. A chat turn must run
   with `workingDirectory` set to the *target* project's own cloned repo, never the Agentic server's
@@ -101,4 +119,4 @@ from chat.
 - [x] 1. Conversations/chat_messages data model + HTTP CRUD + basic chat UI
 - [x] 2. Health conversation over Claude Code CLI (non-streamed)
 - [x] 3. WebSocket streaming
-- [ ] 4. Orchestrator General channel + MCP task-board bridge + remaining roles
+- [x] 4. Orchestrator General channel + MCP task-board bridge + remaining roles

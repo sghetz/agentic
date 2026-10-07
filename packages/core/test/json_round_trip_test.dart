@@ -85,6 +85,28 @@ void main() {
       expect(roundTripped.actor, const Actor.agent('developer'));
     });
 
+    test('TaskEvent round trips for every TaskEventType value', () {
+      // Guards against the exact bug this caught live: adding an enum value
+      // without regenerating json_serializable's enum map leaves toJson()
+      // throwing a null-check error for that one value only -- easy to miss
+      // since the other, already-tested values keep working fine.
+      for (final eventType in TaskEventType.values) {
+        final event = TaskEvent(
+          id: 'evt-$eventType',
+          taskId: 'task-1',
+          ts: DateTime.utc(2026, 1, 1, 12),
+          actor: const Actor.user(),
+          eventType: eventType,
+          payload: const {},
+        );
+        expect(
+          TaskEvent.fromJson(event.toJson()),
+          event,
+          reason: 'failed for TaskEventType.$eventType',
+        );
+      }
+    });
+
     test('Artifact', () {
       final artifact = Artifact(
         id: 'artifact-1',

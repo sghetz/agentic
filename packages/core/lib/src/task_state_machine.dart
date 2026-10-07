@@ -76,7 +76,8 @@ TaskState deriveTaskAt(List<TaskEvent> events, DateTime? at) {
       TaskEventType.statusChanged => _applyStatusChanged(state, event),
       TaskEventType.commented ||
       TaskEventType.artifactAttached ||
-      TaskEventType.edited => state,
+      TaskEventType.edited ||
+      TaskEventType.assigned => state,
     };
   }
   return state;

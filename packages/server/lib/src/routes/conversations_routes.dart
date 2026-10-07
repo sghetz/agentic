@@ -59,12 +59,49 @@ void registerConversationsRoutes(Router router, AppContext ctx) {
       if (store == null) {
         return notFoundResponse('Organization $orgId not found');
       }
+      final conversation = await store.getConversation(conversationId);
+      if (conversation == null) {
+        return notFoundResponse('Conversation $conversationId not found');
+      }
 
       final body = await readJsonBody(request);
       final created = await store.postChatMessage(
         conversationId,
         core.CreateChatMessageRequest.fromJson(body),
       );
+
+      // Only Health's project-scoped channel is wired to a real agent turn
+      // so far (Phase 2 slice 2); the rest follow in a later slice.
+      final channel = conversation.channel;
+      final projectId = conversation.projectId;
+      if (channel is core.ChatChannelAgent &&
+          channel.role == 'health' &&
+          projectId != null) {
+        final org = await ctx.registryStore.get(orgId);
+        final project = await store.getProject(projectId);
+        if (org != null && project != null) {
+          final reply = await ctx.conversationService.reply(
+            role: 'health',
+            userMessage: created.content,
+            workingDirectory: ctx.paths.repoPath(org.slug, project.slug),
+            existingSessionId: conversation.claudeSessionId,
+          );
+          if (reply != null) {
+            await store.postAgentChatMessage(
+              conversationId,
+              role: 'health',
+              content: reply.content,
+            );
+            if (conversation.claudeSessionId == null) {
+              await store.setConversationSessionId(
+                conversationId,
+                reply.sessionId,
+              );
+            }
+          }
+        }
+      }
+
       return jsonResponse(created.toJson(), status: 201);
     });
   });

@@ -586,10 +586,35 @@ class OrgStore {
     if (await getConversation(conversationId) == null) {
       throw ConversationNotFound(conversationId);
     }
+    return _insertChatMessage(
+      conversationId: conversationId,
+      sender: const core.Actor.user(),
+      content: request.content,
+    );
+  }
 
+  /// Stores an agent's reply. Unlike [postChatMessage], this is never driven
+  /// by an HTTP request body -- callers are the services that actually run
+  /// an agent turn (e.g. [ClaudeConversationService]), not the chat UI.
+  Future<core.ChatMessage> postAgentChatMessage(
+    String conversationId, {
+    required String role,
+    required String content,
+  }) {
+    return _insertChatMessage(
+      conversationId: conversationId,
+      sender: core.Actor.agent(role),
+      content: content,
+    );
+  }
+
+  Future<core.ChatMessage> _insertChatMessage({
+    required String conversationId,
+    required core.Actor sender,
+    required String content,
+  }) async {
     final id = core.newId();
     final now = DateTime.now().toUtc();
-    const sender = core.Actor.user();
     await _db
         .into(_db.chatMessages)
         .insert(
@@ -598,7 +623,7 @@ class OrgStore {
             conversationId: conversationId,
             ts: now,
             sender: sender.toStorageString(),
-            content: request.content,
+            content: content,
           ),
         );
     return core.ChatMessage(
@@ -606,8 +631,19 @@ class OrgStore {
       conversationId: conversationId,
       ts: now,
       sender: sender,
-      content: request.content,
+      content: content,
     );
+  }
+
+  /// Records the Claude Code session id created by a conversation's first
+  /// agent turn, so later turns can `--resume` it instead of starting over.
+  Future<void> setConversationSessionId(
+    String conversationId,
+    String sessionId,
+  ) async {
+    await (_db.update(_db.conversations)
+          ..where((c) => c.id.equals(conversationId)))
+        .write(ConversationsCompanion(claudeSessionId: Value(sessionId)));
   }
 
   Future<List<core.ChatMessage>> listChatMessages(String conversationId) async {

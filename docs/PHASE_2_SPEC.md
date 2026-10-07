@@ -16,11 +16,13 @@ from chat.
   for the Orchestrator, for now). Worst case if the subscription limit is ever hit is throttling,
   not a surprise bill. `core`/server docs updated accordingly; `dartantic_ai` is no longer a planned
   dependency anywhere in the project.
-- **Session continuity**: each `conversations` row gets a server-generated UUID stored as
-  `claude_session_id`, passed as `--session-id <uuid>` on every turn for that conversation (first
-  turn creates it, later turns resume it). Confirmed empirically in slice 2 before building on top
-  of it -- if `--session-id` doesn't behave as expected on the installed CLI version, fall back to
-  parsing the `session_id` the CLI's own JSON result emits and resuming with `--resume`.
+- **Session continuity** (confirmed empirically against the real CLI, v2.1.222): each
+  `conversations` row gets a server-generated UUID stored as `claude_session_id`. The *first* turn
+  passes `--session-id <uuid>`, which creates a new session under that id. Every *later* turn
+  passes `-r/--resume <uuid>` instead -- `--session-id` on an id that already exists is a hard
+  error ("Session ID ... is already in use"), it does not resume. Verified a real two-turn exchange
+  this way: turn 2 correctly recalled a fact stated only in turn 1, and `cache_read_input_tokens`
+  on turn 2 showed the CLI reusing turn 1's cached prompt, not resending it.
 - **No manual transcript/token-budget bookkeeping.** Claude Code's own session persistence holds
   prior turns; we only ever send the latest user message as the `-p` prompt, not the full history.
   "Token budget" in this phase means: cap how much static role/project context (conventions,
@@ -40,6 +42,21 @@ from chat.
   rule the same way every other service does.
 - **MCP server package**: pick an MCP SDK from pub.dev when slice 4 starts (prefer an official/
   actively maintained one); not pinned yet since it isn't needed until then.
+- **`workingDirectory` matters beyond file access.** Claude Code auto-includes cwd/git-status/
+  CLAUDE.md context in its system prompt by default, even with `--tools ""`. A chat turn must run
+  with `workingDirectory` set to the *target* project's own cloned repo, never the Agentic server's
+  own source tree -- confirmed live: without this, a reply would reflect Agentic's own dev state
+  (e.g. "I see you're working on Phase 2") instead of the project being discussed.
+- **The subprocess needs the real Claude Code auth on disk.** Verified live: running the server
+  with `HOME` overridden to a scratch directory (as used for isolated test runs) makes every chat
+  reply silently fail-closed (best-effort -> null), because the `claude` subprocess it spawns can't
+  find credentials under that `HOME`. Same root cause as the git-credentials issue from Phase 1,
+  now for Claude Code's own auth. Live verification of this feature specifically needs the real
+  `$HOME`.
+- **Known cosmetic quirk**: with `--tools ""`, the model sometimes still narrates a hypothetical
+  tool call in its reply text (e.g. "I'll check the project structure... **1 tool use**") even
+  though nothing actually ran and the final answer is correct. Not fixed in this slice; worth a
+  prompt tweak later if it's distracting in the UI.
 
 ## Build order
 
@@ -63,6 +80,6 @@ from chat.
 (Update after each approved slice.)
 
 - [x] 1. Conversations/chat_messages data model + HTTP CRUD + basic chat UI
-- [ ] 2. Health conversation over Claude Code CLI (non-streamed)
+- [x] 2. Health conversation over Claude Code CLI (non-streamed)
 - [ ] 3. WebSocket streaming
 - [ ] 4. Orchestrator General channel + MCP task-board bridge + remaining roles

@@ -57,8 +57,7 @@ AppContext buildTestContext({ClaudeConversationService? conversationService}) {
     conversationService:
         conversationService ??
         ClaudeConversationService(
-          invoker: (_, {required workingDirectory}) async =>
-              jsonEncode({'result': ''}),
+          invoker: (_, {required workingDirectory}) => const Stream.empty(),
         ),
   );
 }

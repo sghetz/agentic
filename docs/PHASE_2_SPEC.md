@@ -57,6 +57,25 @@ from chat.
   tool call in its reply text (e.g. "I'll check the project structure... **1 tool use**") even
   though nothing actually ran and the final answer is correct. Not fixed in this slice; worth a
   prompt tweak later if it's distracting in the UI.
+- **Streaming transport** (confirmed live against the real CLI, v2.1.222): `--output-format
+  stream-json` requires `--verbose` in print mode -- the CLI errors otherwise. Output is NDJSON;
+  the visible reply text arrives as `{"type":"stream_event","event":{"type":
+  "content_block_delta","delta":{"type":"text_delta","text":...}}}` lines, interleaved with
+  `thinking_delta` lines (the model's hidden reasoning, not surfaced to the user) and bookkeeping
+  lines (`system`, `rate_limit_event`, etc., all ignored). The same final `{"type":"result",
+  "result":...}` line from the non-streamed path is still the authoritative last line and is what
+  gets persisted -- deltas are display-only, never what's written to `chat_messages`.
+- **`--tools ""` doesn't fully hide MCP context.** Verified live: a reply mentioned "only Claude
+  Docs tools are enabled," meaning the CLI can still surface ambient MCP servers configured
+  globally for the machine's Claude Code install, even with built-in tools disabled. Slice 4's
+  task-board MCP bridge must pass `--strict-mcp-config` so only the one intended MCP server is
+  ever visible to a turn, not whatever else happens to be configured on the developer's machine.
+- **Hub design**: `ChatStreamHub` is in-memory, process-wide pub/sub keyed by conversation id,
+  typed against the generic `StreamChannel` (from `package:stream_channel`) rather than
+  `WebSocketChannel` specifically -- both the server's hub and the app's `ApiClient` return/accept
+  the generic type for the same reason: `WebSocketChannel` in this package version has no public
+  constructor from an arbitrary channel, so tests need the generic type to inject a purely
+  in-memory fake instead of a real socket.
 
 ## Build order
 
@@ -81,5 +100,5 @@ from chat.
 
 - [x] 1. Conversations/chat_messages data model + HTTP CRUD + basic chat UI
 - [x] 2. Health conversation over Claude Code CLI (non-streamed)
-- [ ] 3. WebSocket streaming
+- [x] 3. WebSocket streaming
 - [ ] 4. Orchestrator General channel + MCP task-board bridge + remaining roles

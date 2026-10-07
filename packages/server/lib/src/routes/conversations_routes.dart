@@ -1,9 +1,11 @@
 import 'package:core/core.dart' as core;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
+import 'package:shelf_web_socket/shelf_web_socket.dart';
 
 import '../app_context.dart';
 import '../http_utils.dart';
+import '../services/claude_conversation_service.dart';
 
 void registerConversationsRoutes(Router router, AppContext ctx) {
   // Channels are a fixed set the app already knows about (General + one per
@@ -80,29 +82,62 @@ void registerConversationsRoutes(Router router, AppContext ctx) {
         final org = await ctx.registryStore.get(orgId);
         final project = await store.getProject(projectId);
         if (org != null && project != null) {
-          final reply = await ctx.conversationService.reply(
+          ClaudeStreamResult? result;
+          final stream = ctx.conversationService.replyStream(
             role: 'health',
             userMessage: created.content,
             workingDirectory: ctx.paths.repoPath(org.slug, project.slug),
             existingSessionId: conversation.claudeSessionId,
           );
-          if (reply != null) {
-            await store.postAgentChatMessage(
+          await for (final event in stream) {
+            switch (event) {
+              case ClaudeStreamTextDelta(text: final text):
+                ctx.chatStreamHub.publish(conversationId, {
+                  'type': 'delta',
+                  'text': text,
+                });
+              case ClaudeStreamResult():
+                result = event;
+            }
+          }
+
+          if (result != null) {
+            final agentMessage = await store.postAgentChatMessage(
               conversationId,
               role: 'health',
-              content: reply.content,
+              content: result.content,
             );
             if (conversation.claudeSessionId == null) {
               await store.setConversationSessionId(
                 conversationId,
-                reply.sessionId,
+                result.sessionId,
               );
             }
+            ctx.chatStreamHub.publish(conversationId, {
+              'type': 'done',
+              'message': agentMessage.toJson(),
+            });
+          } else {
+            ctx.chatStreamHub.publish(conversationId, {
+              'type': 'done',
+              'message': null,
+            });
           }
         }
       }
 
       return jsonResponse(created.toJson(), status: 201);
     });
+  });
+
+  router.get('/orgs/<orgId>/conversations/<conversationId>/stream', (
+    Request request,
+    String orgId,
+    String conversationId,
+  ) {
+    final handler = webSocketHandler((channel, protocol) {
+      ctx.chatStreamHub.subscribe(conversationId, channel);
+    });
+    return handler(request);
   });
 }

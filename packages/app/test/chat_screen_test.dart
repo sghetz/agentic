@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:app/src/api/api_client.dart';
 import 'package:app/src/api/api_client_provider.dart';
 import 'package:app/src/state/org_providers.dart';
@@ -7,6 +9,7 @@ import 'package:core/core.dart' as core;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stream_channel/stream_channel.dart';
 
 class _FakeApiClient extends ApiClient {
   _FakeApiClient() : super(baseUrl: Uri.parse('http://localhost'));
@@ -57,6 +60,24 @@ class _FakeApiClient extends ApiClient {
     _messages[conversationId] = [...(_messages[conversationId] ?? []), message];
     return message;
   }
+
+  final _streamControllers = <String, StreamChannelController<Object?>>{};
+
+  StreamChannelController<Object?> controllerFor(String conversationId) =>
+      _streamControllers.putIfAbsent(
+        conversationId,
+        StreamChannelController<Object?>.new,
+      );
+
+  void addAgentMessage(String conversationId, core.ChatMessage message) {
+    _messages[conversationId] = [...(_messages[conversationId] ?? []), message];
+  }
+
+  @override
+  StreamChannel<dynamic> connectConversationStream(
+    String orgId,
+    String conversationId,
+  ) => controllerFor(conversationId).local;
 }
 
 class _FixedOrgId extends SelectedOrgId {
@@ -130,4 +151,46 @@ void main() {
 
     expect(find.text('hello there'), findsOneWidget);
   });
+
+  testWidgets(
+    'streamed deltas appear live, then are replaced by the persisted message',
+    (tester) async {
+      final client = _FakeApiClient();
+      await tester.pumpWidget(_buildApp(client));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Health'));
+      await tester.pumpAndSettle();
+
+      const conversationId = 'conv-proj-1:agent:health';
+      final sink = client.controllerFor(conversationId).foreign.sink;
+
+      sink.add(jsonEncode({'type': 'delta', 'text': 'Looks '}));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Looks '), findsOneWidget);
+
+      sink.add(jsonEncode({'type': 'delta', 'text': 'healthy.'}));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Looks healthy.'), findsOneWidget);
+      expect(find.byKey(const Key('streamingBubble')), findsOneWidget);
+
+      client.addAgentMessage(
+        conversationId,
+        core.ChatMessage(
+          id: 'msg-agent-1',
+          conversationId: conversationId,
+          ts: DateTime.utc(2026, 1, 1),
+          sender: const core.Actor.agent('health'),
+          content: 'Looks healthy.',
+        ),
+      );
+      sink.add(jsonEncode({'type': 'done', 'message': null}));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('streamingBubble')), findsNothing);
+      expect(find.text('Looks healthy.'), findsOneWidget);
+    },
+  );
 }

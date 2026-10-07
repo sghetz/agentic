@@ -131,9 +131,14 @@ void main() {
         final calls = <List<String>>[];
         final (_, h, org, proj) = await setUpWith(
           ClaudeConversationService(
-            invoker: (args, {required workingDirectory}) async {
+            invoker: (args, {required workingDirectory}) {
               calls.add(args);
-              return jsonEncode({'result': 'Looks healthy to me.'});
+              return Stream.fromIterable([
+                jsonEncode({
+                  'type': 'result',
+                  'result': 'Looks healthy to me.',
+                }),
+              ]);
             },
           ),
         );
@@ -180,9 +185,11 @@ void main() {
       final calls = <List<String>>[];
       final (_, h, org, proj) = await setUpWith(
         ClaudeConversationService(
-          invoker: (args, {required workingDirectory}) async {
+          invoker: (args, {required workingDirectory}) {
             calls.add(args);
-            return jsonEncode({'result': 'ok ${calls.length}'});
+            return Stream.fromIterable([
+              jsonEncode({'type': 'result', 'result': 'ok ${calls.length}'}),
+            ]);
           },
         ),
       );
@@ -218,9 +225,11 @@ void main() {
         var invoked = false;
         final (_, h, org, _) = await setUpWith(
           ClaudeConversationService(
-            invoker: (args, {required workingDirectory}) async {
+            invoker: (args, {required workingDirectory}) {
               invoked = true;
-              return jsonEncode({'result': 'should not happen'});
+              return Stream.fromIterable([
+                jsonEncode({'type': 'result', 'result': 'should not happen'}),
+              ]);
             },
           ),
         );

@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:core/core.dart' as core;
 import 'package:http/http.dart' as http;
+import 'package:stream_channel/stream_channel.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ApiException implements Exception {
   ApiException(this.statusCode, this.body);
@@ -381,6 +383,26 @@ class ApiClient {
       json: request.toJson(),
     );
     return core.ChatMessage.fromJson(body! as Map<String, Object?>);
+  }
+
+  /// Opens the live-streaming side channel for one conversation. A message
+  /// is still sent via [postChatMessage]; this socket only receives
+  /// `{"type":"delta","text":...}` / `{"type":"done","message":...}` events
+  /// as an agent turn runs -- the full reply is always persisted
+  /// server-side regardless of whether this socket is open.
+  ///
+  /// Typed as the generic [StreamChannel] rather than `WebSocketChannel`
+  /// specifically (which satisfies this interface) so tests can override
+  /// this with a purely in-memory channel instead of a real socket.
+  StreamChannel<dynamic> connectConversationStream(
+    String orgId,
+    String conversationId,
+  ) {
+    final httpUri = _uri('/orgs/$orgId/conversations/$conversationId/stream');
+    final wsUri = httpUri.replace(
+      scheme: httpUri.scheme == 'https' ? 'wss' : 'ws',
+    );
+    return WebSocketChannel.connect(wsUri);
   }
 
   // ---- Dashboard ----

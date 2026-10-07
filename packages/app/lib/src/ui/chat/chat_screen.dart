@@ -1,6 +1,10 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:core/core.dart' as core;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stream_channel/stream_channel.dart';
 
 import '../../api/api_client_provider.dart';
 import '../../state/chat_providers.dart';
@@ -123,10 +127,54 @@ class _ChannelThreadState extends ConsumerState<_ChannelThread> {
   final _controller = TextEditingController();
   bool _sending = false;
 
+  StreamChannel<dynamic>? _socket;
+  StreamSubscription<Object?>? _socketSub;
+  String? _socketConversationId;
+  String _streamingText = '';
+
   @override
   void dispose() {
+    _socketSub?.cancel();
+    _socket?.sink.close();
     _controller.dispose();
     super.dispose();
+  }
+
+  /// Opens the streaming side channel for [conversationId] once, and only
+  /// once -- re-entering this on every rebuild would otherwise reconnect
+  /// repeatedly since the conversation id only becomes known asynchronously.
+  void _ensureSocket(String conversationId) {
+    if (_socketConversationId == conversationId) return;
+    _socketSub?.cancel();
+    _socket?.sink.close();
+    _streamingText = '';
+    _socketConversationId = conversationId;
+    try {
+      _socket = ref
+          .read(apiClientProvider)
+          .connectConversationStream(widget.orgId, conversationId);
+      _socketSub = _socket!.stream.listen(
+        (raw) {
+          final event = jsonDecode(raw as String) as Map<String, Object?>;
+          if (!mounted) return;
+          switch (event['type']) {
+            case 'delta':
+              setState(() => _streamingText += event['text'] as String);
+            case 'done':
+              setState(() => _streamingText = '');
+              ref.invalidate(
+                chatMessagesProvider(widget.orgId, conversationId),
+              );
+          }
+        },
+        // Streaming only improves the live UX; if the socket never connects
+        // or drops, chat still works via plain HTTP, just without live
+        // typing -- never let a socket error surface to the user.
+        onError: (_) {},
+      );
+    } catch (_) {
+      _socket = null;
+    }
   }
 
   @override
@@ -156,6 +204,7 @@ class _ChannelThreadState extends ConsumerState<_ChannelThread> {
   }
 
   Widget _buildThread(BuildContext context, core.Conversation conversation) {
+    _ensureSocket(conversation.id);
     final messagesAsync = ref.watch(
       chatMessagesProvider(widget.orgId, conversation.id),
     );
@@ -165,14 +214,23 @@ class _ChannelThreadState extends ConsumerState<_ChannelThread> {
         Expanded(
           child: messagesAsync.when(
             data: (messages) {
-              if (messages.isEmpty) {
+              if (messages.isEmpty && _streamingText.isEmpty) {
                 return const EmptyState(message: 'No messages yet');
               }
+              final streaming = _streamingText;
+              final itemCount = messages.length + (streaming.isEmpty ? 0 : 1);
               return ListView.builder(
                 padding: const EdgeInsets.all(12),
-                itemCount: messages.length,
-                itemBuilder: (context, index) =>
-                    _MessageBubble(message: messages[index]),
+                itemCount: itemCount,
+                itemBuilder: (context, index) {
+                  if (index < messages.length) {
+                    return _MessageBubble(message: messages[index]);
+                  }
+                  return _StreamingBubble(
+                    key: const Key('streamingBubble'),
+                    text: streaming,
+                  );
+                },
               );
             },
             loading: () => const LoadingState(),
@@ -231,6 +289,30 @@ class _ChannelThreadState extends ConsumerState<_ChannelThread> {
     } finally {
       if (mounted) setState(() => _sending = false);
     }
+  }
+}
+
+/// The agent's reply as it streams in, before it's persisted. Disappears
+/// once the turn's `done` event arrives and the real message list reloads.
+class _StreamingBubble extends StatelessWidget {
+  const _StreamingBubble({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(text),
+      ),
+    );
   }
 }
 

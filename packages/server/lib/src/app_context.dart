@@ -1,6 +1,7 @@
 import 'config.dart';
 import 'repositories/org_store.dart';
 import 'repositories/registry_store.dart';
+import 'services/chat_stream_hub.dart';
 import 'services/claude_conversation_service.dart';
 import 'services/failure_diagnosis_service.dart';
 import 'services/flutter_version_detector.dart';
@@ -25,7 +26,9 @@ class AppContext {
     required this.trivialFixService,
     required this.paths,
     this.conversationService = const ClaudeConversationService(),
-  }) : _openOrgDatabase = openOrgDatabase;
+    ChatStreamHub? chatStreamHub,
+  }) : _openOrgDatabase = openOrgDatabase,
+       chatStreamHub = chatStreamHub ?? ChatStreamHub();
 
   factory AppContext.standard(AgenticPaths paths) {
     const gitService = GitService();
@@ -60,6 +63,7 @@ class AppContext {
   final HealthCheckService healthCheckService;
   final TrivialFixService trivialFixService;
   final ClaudeConversationService conversationService;
+  final ChatStreamHub chatStreamHub;
   final AgenticPaths paths;
   final OrgDatabase Function(String orgId) _openOrgDatabase;
   final Map<String, OrgStore> _orgStores = {};

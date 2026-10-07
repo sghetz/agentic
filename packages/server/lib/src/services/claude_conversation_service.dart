@@ -4,109 +4,154 @@ import 'dart:io';
 
 import 'package:core/core.dart' as core;
 
-typedef ChatClaudeInvoker =
-    Future<String> Function(
+typedef ChatClaudeStreamInvoker =
+    Stream<String> Function(
       List<String> args, {
       required String workingDirectory,
     });
 
-Future<String> _defaultChatClaudeInvoker(
+/// Streams stdout line by line (NDJSON, one JSON object per line) as the
+/// process runs, instead of collecting it all and returning at the end.
+Stream<String> _defaultChatClaudeStreamInvoker(
   List<String> args, {
   required String workingDirectory,
-}) async {
-  final process = await Process.start(
-    'claude',
-    args,
-    workingDirectory: workingDirectory,
-  );
-  unawaited(process.stdin.close());
-  final stdoutFuture = process.stdout.transform(utf8.decoder).join();
-  final stderrFuture = process.stderr.transform(utf8.decoder).join();
-  final exitCode = await process.exitCode;
-  if (exitCode != 0) {
-    final stderr = await stderrFuture;
-    throw ProcessException('claude', args, stderr, exitCode);
-  }
-  return stdoutFuture;
+}) {
+  final controller = StreamController<String>();
+  unawaited(() async {
+    try {
+      final process = await Process.start(
+        'claude',
+        args,
+        workingDirectory: workingDirectory,
+      );
+      unawaited(process.stdin.close());
+      final stderrFuture = process.stderr.transform(utf8.decoder).join();
+      await process.stdout
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .forEach(controller.add);
+      final exitCode = await process.exitCode;
+      if (exitCode != 0) {
+        final stderr = await stderrFuture;
+        controller.addError(ProcessException('claude', args, stderr, exitCode));
+      }
+    } catch (e) {
+      controller.addError(e);
+    } finally {
+      await controller.close();
+    }
+  }());
+  return controller.stream;
 }
 
-class ClaudeConversationReply {
-  const ClaudeConversationReply({
-    required this.content,
-    required this.sessionId,
-  });
+sealed class ClaudeStreamEvent {}
 
+class ClaudeStreamTextDelta extends ClaudeStreamEvent {
+  ClaudeStreamTextDelta(this.text);
+  final String text;
+}
+
+class ClaudeStreamResult extends ClaudeStreamEvent {
+  ClaudeStreamResult({required this.content, required this.sessionId});
   final String content;
   final String sessionId;
 }
 
-/// One turn of a chat conversation with an agent role, via Claude Code CLI.
+/// One turn of a chat conversation with an agent role, via Claude Code CLI,
+/// streamed via `--output-format stream-json --include-partial-messages`
+/// (which requires `--verbose` in print mode -- confirmed against the real
+/// CLI). Yields a [ClaudeStreamTextDelta] per visible text chunk as it
+/// arrives (the model's internal `thinking_delta` chunks are not surfaced),
+/// then a single [ClaudeStreamResult] once the CLI's own final `result`
+/// line arrives with the full text and the session id to persist.
 ///
-/// Session continuity (confirmed empirically against the real CLI): the
-/// *first* turn passes `--session-id <uuid>` to create the session; every
-/// later turn passes `--resume <uuid>` instead -- `--session-id` on an id
-/// that already exists is a hard error, it does not resume. The CLI's own
-/// session persistence holds prior turns, so only the latest user message is
-/// ever sent, never a manually-assembled transcript.
-///
-/// The role's system prompt does **not** carry over across `--resume` (also
-/// confirmed empirically), so it's re-sent via `--append-system-prompt` on
-/// every turn. `workingDirectory` must be the target project's own repo (or
-/// a neutral, file-free directory for an org-scoped conversation) --
-/// Claude Code auto-includes cwd/git-status/CLAUDE.md context by default, and
-/// running from Agentic's own source tree would leak Agentic's dev context
-/// into a conversation about a user project. No tool access (`--tools ""`):
-/// this is a read-only Q&A turn, not a file-editing session.
-/// Best-effort: any failure here (bad output, timeout, CLI not installed)
-/// just means no reply, not a broken chat.
+/// Session continuity, system-prompt resending, `workingDirectory`, and
+/// the lack of tool access all carry the same reasoning as before (see
+/// `docs/PHASE_2_SPEC.md`) -- only the transport changed, not the turn
+/// semantics. Best-effort: a stream that errors, is truncated, or never
+/// produces a `result` line simply yields no [ClaudeStreamResult] -- the
+/// caller is responsible for treating "no result" as "no reply", not a
+/// broken chat.
 class ClaudeConversationService {
   const ClaudeConversationService({
-    ChatClaudeInvoker invoker = _defaultChatClaudeInvoker,
+    ChatClaudeStreamInvoker invoker = _defaultChatClaudeStreamInvoker,
     this.model = 'sonnet',
-    this.timeout = const Duration(seconds: 60),
+    this.timeout = const Duration(seconds: 90),
   }) : _invoker = invoker;
 
-  final ChatClaudeInvoker _invoker;
+  final ChatClaudeStreamInvoker _invoker;
   final String model;
   final Duration timeout;
 
-  Future<ClaudeConversationReply?> reply({
+  Stream<ClaudeStreamEvent> replyStream({
     required String role,
     required String userMessage,
     required String workingDirectory,
     String? existingSessionId,
-  }) async {
+  }) async* {
     final sessionId = existingSessionId ?? core.newId();
-    try {
-      final raw = await _invoker([
-        '-p',
-        userMessage,
-        '--output-format',
-        'json',
-        '--append-system-prompt',
-        _systemPromptFor(role),
-        '--tools',
-        '',
-        '--model',
-        model,
-        if (existingSessionId == null) ...[
-          '--session-id',
-          sessionId,
-        ] else ...[
-          '--resume',
-          sessionId,
-        ],
-        '--max-budget-usd',
-        '0.50',
-      ], workingDirectory: workingDirectory).timeout(timeout);
+    final args = [
+      '-p',
+      userMessage,
+      '--output-format',
+      'stream-json',
+      '--include-partial-messages',
+      '--verbose',
+      '--append-system-prompt',
+      _systemPromptFor(role),
+      '--tools',
+      '',
+      '--model',
+      model,
+      if (existingSessionId == null) ...[
+        '--session-id',
+        sessionId,
+      ] else ...[
+        '--resume',
+        sessionId,
+      ],
+      '--max-budget-usd',
+      '0.50',
+    ];
 
-      final envelope = jsonDecode(raw) as Map<String, Object?>;
-      final content = envelope['result'] as String?;
-      if (content == null || content.isEmpty) return null;
-      return ClaudeConversationReply(content: content, sessionId: sessionId);
+    try {
+      final lines = _invoker(
+        args,
+        workingDirectory: workingDirectory,
+      ).timeout(timeout);
+      await for (final line in lines) {
+        if (line.trim().isEmpty) continue;
+        final Map<String, Object?> event;
+        try {
+          event = jsonDecode(line) as Map<String, Object?>;
+        } catch (_) {
+          continue;
+        }
+
+        switch (event['type']) {
+          case 'stream_event':
+            final text = _textDeltaFrom(event);
+            if (text != null && text.isNotEmpty) {
+              yield ClaudeStreamTextDelta(text);
+            }
+          case 'result':
+            final content = event['result'] as String?;
+            if (content != null && content.isNotEmpty) {
+              yield ClaudeStreamResult(content: content, sessionId: sessionId);
+            }
+        }
+      }
     } catch (_) {
-      return null;
+      // Best-effort: swallow and yield nothing further.
     }
+  }
+
+  String? _textDeltaFrom(Map<String, Object?> streamEventLine) {
+    final inner = streamEventLine['event'] as Map<String, Object?>?;
+    if (inner?['type'] != 'content_block_delta') return null;
+    final delta = inner!['delta'] as Map<String, Object?>?;
+    if (delta?['type'] != 'text_delta') return null;
+    return delta!['text'] as String?;
   }
 
   String _systemPromptFor(String role) => switch (role) {

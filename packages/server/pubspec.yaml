@@ -11,6 +11,8 @@ dependencies:
     path: ../core
   shelf: ^1.4.2
   shelf_router: ^1.1.4
+  shelf_web_socket: ^3.0.0
+  stream_channel: ^2.1.2
   drift: ^2.35.1
   sqlite3: ^3.7.0
   path: ^1.9.1
@@ -20,3 +22,4 @@ dev_dependencies:
   drift_dev: ^2.35.1
   lints: ^6.1.0
   test: any
+  web_socket_channel: ^3.0.1

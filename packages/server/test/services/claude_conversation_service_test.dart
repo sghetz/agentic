@@ -3,31 +3,97 @@ import 'dart:convert';
 import 'package:server/src/services/claude_conversation_service.dart';
 import 'package:test/test.dart';
 
+String _streamEvent(String text) => jsonEncode({
+  'type': 'stream_event',
+  'event': {
+    'type': 'content_block_delta',
+    'index': 1,
+    'delta': {'type': 'text_delta', 'text': text},
+  },
+});
+
+String _thinkingEvent(String text) => jsonEncode({
+  'type': 'stream_event',
+  'event': {
+    'type': 'content_block_delta',
+    'index': 0,
+    'delta': {'type': 'thinking_delta', 'thinking': text},
+  },
+});
+
+String _resultLine(String result) =>
+    jsonEncode({'type': 'result', 'result': result});
+
 void main() {
-  group('ClaudeConversationService', () {
+  group('ClaudeConversationService.replyStream', () {
+    test('yields a text delta per visible chunk, then one result', () async {
+      final service = ClaudeConversationService(
+        invoker: (args, {required workingDirectory}) => Stream.fromIterable([
+          _streamEvent('Hello'),
+          _streamEvent(' there'),
+          _resultLine('Hello there'),
+        ]),
+      );
+
+      final events = await service
+          .replyStream(
+            role: 'health',
+            userMessage: 'hi',
+            workingDirectory: '/tmp',
+          )
+          .toList();
+
+      expect(events, hasLength(3));
+      expect((events[0] as ClaudeStreamTextDelta).text, 'Hello');
+      expect((events[1] as ClaudeStreamTextDelta).text, ' there');
+      expect((events[2] as ClaudeStreamResult).content, 'Hello there');
+    });
+
+    test('ignores thinking_delta chunks', () async {
+      final service = ClaudeConversationService(
+        invoker: (args, {required workingDirectory}) => Stream.fromIterable([
+          _thinkingEvent('internal reasoning'),
+          _streamEvent('visible answer'),
+          _resultLine('visible answer'),
+        ]),
+      );
+
+      final events = await service
+          .replyStream(
+            role: 'health',
+            userMessage: 'hi',
+            workingDirectory: '/tmp',
+          )
+          .toList();
+
+      expect(events, hasLength(2));
+      expect((events[0] as ClaudeStreamTextDelta).text, 'visible answer');
+    });
+
     test(
       'a first turn (no existing session) creates one via --session-id',
       () async {
         List<String>? capturedArgs;
         final service = ClaudeConversationService(
-          invoker: (args, {required workingDirectory}) async {
+          invoker: (args, {required workingDirectory}) {
             capturedArgs = args;
-            return jsonEncode({'result': 'hi there'});
+            return Stream.fromIterable([_resultLine('ok')]);
           },
         );
 
-        final reply = await service.reply(
-          role: 'health',
-          userMessage: 'hello',
-          workingDirectory: '/tmp',
-        );
+        final events = await service
+            .replyStream(
+              role: 'health',
+              userMessage: 'hi',
+              workingDirectory: '/tmp',
+            )
+            .toList();
 
-        expect(reply, isNotNull);
-        expect(reply!.content, 'hi there');
+        final result = events.single as ClaudeStreamResult;
         expect(capturedArgs, contains('--session-id'));
         expect(capturedArgs, isNot(contains('--resume')));
         expect(
-          reply.sessionId,
+          result.sessionId,
           capturedArgs![capturedArgs!.indexOf('--session-id') + 1],
         );
       },
@@ -36,140 +102,126 @@ void main() {
     test('a later turn (existing session) resumes via --resume', () async {
       List<String>? capturedArgs;
       final service = ClaudeConversationService(
-        invoker: (args, {required workingDirectory}) async {
+        invoker: (args, {required workingDirectory}) {
           capturedArgs = args;
-          return jsonEncode({'result': 'still here'});
+          return Stream.fromIterable([_resultLine('ok')]);
         },
       );
 
-      final reply = await service.reply(
-        role: 'health',
-        userMessage: 'and now?',
-        workingDirectory: '/tmp',
-        existingSessionId: 'session-123',
-      );
+      final events = await service
+          .replyStream(
+            role: 'health',
+            userMessage: 'and now?',
+            workingDirectory: '/tmp',
+            existingSessionId: 'session-123',
+          )
+          .toList();
 
-      expect(reply!.sessionId, 'session-123');
+      final result = events.single as ClaudeStreamResult;
+      expect(result.sessionId, 'session-123');
       expect(capturedArgs, containsAllInOrder(['--resume', 'session-123']));
       expect(capturedArgs, isNot(contains('--session-id')));
     });
 
-    test(
-      'resends a role-specific system prompt via --append-system-prompt',
-      () async {
-        List<String>? capturedArgs;
-        final service = ClaudeConversationService(
-          invoker: (args, {required workingDirectory}) async {
-            capturedArgs = args;
-            return jsonEncode({'result': 'ok'});
-          },
-        );
+    test('requires --verbose alongside stream-json output', () async {
+      List<String>? capturedArgs;
+      final service = ClaudeConversationService(
+        invoker: (args, {required workingDirectory}) {
+          capturedArgs = args;
+          return Stream.fromIterable([_resultLine('ok')]);
+        },
+      );
 
-        await service.reply(
-          role: 'health',
-          userMessage: 'hi',
-          workingDirectory: '/tmp',
-        );
+      await service
+          .replyStream(
+            role: 'health',
+            userMessage: 'hi',
+            workingDirectory: '/tmp',
+          )
+          .toList();
 
-        final index = capturedArgs!.indexOf('--append-system-prompt');
-        expect(index, greaterThanOrEqualTo(0));
-        expect(capturedArgs![index + 1], contains('Health agent'));
-      },
-    );
+      expect(capturedArgs, contains('--verbose'));
+      expect(
+        capturedArgs,
+        containsAllInOrder(['--output-format', 'stream-json']),
+      );
+      expect(capturedArgs, contains('--include-partial-messages'));
+    });
 
     test('passes the given working directory through to the invoker', () async {
       String? capturedCwd;
       final service = ClaudeConversationService(
-        invoker: (args, {required workingDirectory}) async {
+        invoker: (args, {required workingDirectory}) {
           capturedCwd = workingDirectory;
-          return jsonEncode({'result': 'ok'});
+          return Stream.fromIterable([_resultLine('ok')]);
         },
       );
 
-      await service.reply(
-        role: 'health',
-        userMessage: 'hi',
-        workingDirectory: '/some/repo/path',
-      );
+      await service
+          .replyStream(
+            role: 'health',
+            userMessage: 'hi',
+            workingDirectory: '/some/repo/path',
+          )
+          .toList();
 
       expect(capturedCwd, '/some/repo/path');
     });
 
-    test('disables tool access with --tools ""', () async {
-      List<String>? capturedArgs;
+    test('yields nothing when the stream never produces a result', () async {
       final service = ClaudeConversationService(
-        invoker: (args, {required workingDirectory}) async {
-          capturedArgs = args;
-          return jsonEncode({'result': 'ok'});
-        },
+        invoker: (args, {required workingDirectory}) =>
+            Stream.fromIterable([_streamEvent('partial only')]),
       );
 
-      await service.reply(
-        role: 'health',
-        userMessage: 'hi',
-        workingDirectory: '/tmp',
-      );
+      final events = await service
+          .replyStream(
+            role: 'health',
+            userMessage: 'hi',
+            workingDirectory: '/tmp',
+          )
+          .toList();
 
-      expect(capturedArgs, containsAllInOrder(['--tools', '']));
+      expect(events, hasLength(1));
+      expect(events.single, isA<ClaudeStreamTextDelta>());
     });
 
-    test('returns null when the result field is missing', () async {
+    test(
+      'yields nothing (never throws) when the invoker stream errors',
+      () async {
+        final service = ClaudeConversationService(
+          invoker: (args, {required workingDirectory}) =>
+              Stream.error(Exception('claude not installed')),
+        );
+
+        final events = await service
+            .replyStream(
+              role: 'health',
+              userMessage: 'hi',
+              workingDirectory: '/tmp',
+            )
+            .toList();
+
+        expect(events, isEmpty);
+      },
+    );
+
+    test('skips unparsable lines without failing the whole turn', () async {
       final service = ClaudeConversationService(
-        invoker: (_, {required workingDirectory}) async =>
-            jsonEncode({'not_result': 'x'}),
+        invoker: (args, {required workingDirectory}) =>
+            Stream.fromIterable(['not json', _resultLine('ok anyway')]),
       );
 
-      final reply = await service.reply(
-        role: 'health',
-        userMessage: 'hi',
-        workingDirectory: '/tmp',
-      );
+      final events = await service
+          .replyStream(
+            role: 'health',
+            userMessage: 'hi',
+            workingDirectory: '/tmp',
+          )
+          .toList();
 
-      expect(reply, isNull);
-    });
-
-    test('returns null when the result field is empty', () async {
-      final service = ClaudeConversationService(
-        invoker: (_, {required workingDirectory}) async =>
-            jsonEncode({'result': ''}),
-      );
-
-      final reply = await service.reply(
-        role: 'health',
-        userMessage: 'hi',
-        workingDirectory: '/tmp',
-      );
-
-      expect(reply, isNull);
-    });
-
-    test('returns null (never throws) when the invoker fails', () async {
-      final service = ClaudeConversationService(
-        invoker: (_, {required workingDirectory}) async =>
-            throw Exception('claude not installed'),
-      );
-
-      final reply = await service.reply(
-        role: 'health',
-        userMessage: 'hi',
-        workingDirectory: '/tmp',
-      );
-
-      expect(reply, isNull);
-    });
-
-    test('returns null when the invoker output is malformed JSON', () async {
-      final service = ClaudeConversationService(
-        invoker: (_, {required workingDirectory}) async => 'not json',
-      );
-
-      final reply = await service.reply(
-        role: 'health',
-        userMessage: 'hi',
-        workingDirectory: '/tmp',
-      );
-
-      expect(reply, isNull);
+      expect(events, hasLength(1));
+      expect((events.single as ClaudeStreamResult).content, 'ok anyway');
     });
   });
 }

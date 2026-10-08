@@ -11,6 +11,7 @@ export 'src/enums/link_relation.dart';
 export 'src/enums/org_type.dart';
 export 'src/enums/project_status.dart';
 export 'src/enums/task_event_type.dart';
+export 'src/enums/task_spec_priority.dart';
 export 'src/enums/task_status.dart';
 
 export 'src/models/artifact.dart';
@@ -24,6 +25,7 @@ export 'src/models/project_link.dart';
 export 'src/models/repo_config.dart';
 export 'src/models/task.dart';
 export 'src/models/task_event.dart';
+export 'src/models/task_spec.dart';
 
 export 'src/dto/create_artifact_request.dart';
 export 'src/dto/create_chat_message_request.dart';

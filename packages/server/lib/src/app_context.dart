@@ -1,6 +1,7 @@
 import 'config.dart';
 import 'repositories/org_store.dart';
 import 'repositories/registry_store.dart';
+import 'services/analyst_extraction_service.dart';
 import 'services/chat_stream_hub.dart';
 import 'services/claude_conversation_service.dart';
 import 'services/failure_diagnosis_service.dart';
@@ -26,6 +27,7 @@ class AppContext {
     required this.trivialFixService,
     required this.paths,
     this.conversationService = const ClaudeConversationService(),
+    this.analystExtractionService = const AnalystExtractionService(),
     ChatStreamHub? chatStreamHub,
   }) : _openOrgDatabase = openOrgDatabase,
        chatStreamHub = chatStreamHub ?? ChatStreamHub();
@@ -63,6 +65,7 @@ class AppContext {
   final HealthCheckService healthCheckService;
   final TrivialFixService trivialFixService;
   final ClaudeConversationService conversationService;
+  final AnalystExtractionService analystExtractionService;
   final ChatStreamHub chatStreamHub;
   final AgenticPaths paths;
   final OrgDatabase Function(String orgId) _openOrgDatabase;

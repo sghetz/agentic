@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:server/src/app_context.dart';
 import 'package:server/src/config.dart';
 import 'package:server/src/repositories/registry_store.dart';
+import 'package:server/src/services/analyst_extraction_service.dart';
 import 'package:server/src/services/claude_conversation_service.dart';
 import 'package:server/src/services/failure_diagnosis_service.dart';
 import 'package:server/src/services/flutter_version_detector.dart';
@@ -17,7 +18,10 @@ import 'package:server/src/storage/registry_database.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
-AppContext buildTestContext({ClaudeConversationService? conversationService}) {
+AppContext buildTestContext({
+  ClaudeConversationService? conversationService,
+  AnalystExtractionService? analystExtractionService,
+}) {
   final tempDir = Directory.systemTemp.createTempSync('agentic_test_');
   final paths = AgenticPaths('${tempDir.path}/data', '${tempDir.path}/repos');
   const gitService = GitService();
@@ -59,6 +63,11 @@ AppContext buildTestContext({ClaudeConversationService? conversationService}) {
         ClaudeConversationService(
           invoker: (_, {required workingDirectory}) => const Stream.empty(),
         ),
+    // Never calls the real `claude` CLI in tests. Tests that care about
+    // extraction content pass their own `analystExtractionService`.
+    analystExtractionService:
+        analystExtractionService ??
+        AnalystExtractionService(invoker: (_) async => '{}'),
   );
 }
 

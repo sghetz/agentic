@@ -71,7 +71,7 @@ copying.
 
 (Update after each approved slice.)
 
-- [ ] 1. TaskSpec model + AnalystExtractionService + manual-trigger route
+- [x] 1. TaskSpec model + AnalystExtractionService + manual-trigger route
 - [ ] 2. sources/messages data model + ERF import
 - [ ] 3. WhatsApp manual import + message routing with confidence
 - [ ] 4. Inbox + Task Spec review UI

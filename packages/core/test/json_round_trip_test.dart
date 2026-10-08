@@ -107,6 +107,19 @@ void main() {
       }
     });
 
+    test('TaskSpec', () {
+      const spec = TaskSpec(
+        projectId: 'proj-1',
+        goal: 'Let users reset their password via email',
+        requirementIds: ['RF-07'],
+        acceptanceCriteria: ['A reset link expires after 1 hour'],
+        affectedAreas: ['Auth', 'Email'],
+        priority: TaskSpecPriority.high,
+        openQuestions: ['Should the link be single-use?'],
+      );
+      expect(TaskSpec.fromJson(spec.toJson()), spec);
+    });
+
     test('Artifact', () {
       final artifact = Artifact(
         id: 'artifact-1',

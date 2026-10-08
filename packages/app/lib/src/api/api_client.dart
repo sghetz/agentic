@@ -405,6 +405,93 @@ class ApiClient {
     return WebSocketChannel.connect(wsUri);
   }
 
+  // ---- Sources, messages, Task Specs ----
+
+  Future<core.Source> createSource(
+    String orgId,
+    core.CreateSourceRequest request,
+  ) async {
+    final body = await _send(
+      'POST',
+      _uri('/orgs/$orgId/sources'),
+      json: request.toJson(),
+    );
+    return core.Source.fromJson(body! as Map<String, Object?>);
+  }
+
+  Future<List<core.Source>> listSources(
+    String orgId, {
+    String? projectId,
+  }) async {
+    final body =
+        await _send(
+              'GET',
+              _uri('/orgs/$orgId/sources', {'projectId': ?projectId}),
+            )
+            as List;
+    return body
+        .map((e) => core.Source.fromJson(e as Map<String, Object?>))
+        .toList();
+  }
+
+  Future<Map<String, Object?>> scanErfSource(
+    String orgId,
+    String sourceId,
+  ) async {
+    final body = await _send(
+      'POST',
+      _uri('/orgs/$orgId/sources/$sourceId/scan'),
+      json: const {},
+    );
+    return body! as Map<String, Object?>;
+  }
+
+  Future<Map<String, Object?>> importWhatsApp(
+    String orgId,
+    String sourceId,
+    String exportText,
+  ) async {
+    final body = await _send(
+      'POST',
+      _uri('/orgs/$orgId/sources/$sourceId/import-whatsapp'),
+      json: {'exportText': exportText},
+    );
+    return body! as Map<String, Object?>;
+  }
+
+  Future<List<core.Message>> listUnroutedMessages(String orgId) async {
+    final body =
+        await _send('GET', _uri('/orgs/$orgId/messages/unrouted')) as List;
+    return body
+        .map((e) => core.Message.fromJson(e as Map<String, Object?>))
+        .toList();
+  }
+
+  Future<core.Message> assignMessageProject(
+    String orgId,
+    String messageId,
+    String projectId,
+  ) async {
+    final body = await _send(
+      'POST',
+      _uri('/orgs/$orgId/messages/$messageId/assign'),
+      json: {'projectId': projectId},
+    );
+    return core.Message.fromJson(body! as Map<String, Object?>);
+  }
+
+  Future<List<core.Artifact>> listTaskSpecs(
+    String orgId,
+    String projectId,
+  ) async {
+    final body =
+        await _send('GET', _uri('/orgs/$orgId/projects/$projectId/task-specs'))
+            as List;
+    return body
+        .map((e) => core.Artifact.fromJson(e as Map<String, Object?>))
+        .toList();
+  }
+
   // ---- Dashboard ----
 
   Future<core.DashboardSummary> dashboard() async {

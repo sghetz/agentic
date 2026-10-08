@@ -5,12 +5,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../api/api_client.dart';
 import '../../api/api_client_provider.dart';
+import '../../state/inbox_providers.dart';
 import '../../state/org_providers.dart';
 import '../../state/project_providers.dart';
 import '../common/empty_state.dart';
 import '../common/error_state.dart';
 import '../common/loading_state.dart';
 import '../health/health_report_dialog.dart';
+import '../inbox/task_spec_dialog.dart';
 import 'health_indicator.dart';
 
 class ProjectList extends ConsumerWidget {
@@ -105,6 +107,15 @@ class ProjectList extends ConsumerWidget {
                               projectId: project.id,
                               projectName: project.name,
                             );
+                          case 'task-specs':
+                            await showTaskSpecDialog(
+                              context,
+                              orgId: orgId,
+                              projectId: project.id,
+                              projectName: project.name,
+                            );
+                          case 'import-erf':
+                            await _importErf(context, ref, orgId, project);
                           case 'archive':
                             await ref
                                 .read(apiClientProvider)
@@ -124,6 +135,14 @@ class ProjectList extends ConsumerWidget {
                             value: 'health',
                             child: Text('Health reports'),
                           ),
+                        const PopupMenuItem(
+                          value: 'task-specs',
+                          child: Text('Task Specs'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'import-erf',
+                          child: Text('Import ERF folder...'),
+                        ),
                         if (!isArchived)
                           const PopupMenuItem(
                             value: 'archive',
@@ -353,5 +372,83 @@ class ProjectList extends ConsumerWidget {
           ),
         );
     ref.invalidate(projectListProvider(orgId));
+  }
+
+  Future<void> _importErf(
+    BuildContext context,
+    WidgetRef ref,
+    String orgId,
+    core.Project project,
+  ) async {
+    final controller = TextEditingController();
+    final shouldImport = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Import ERF folder'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Folder path',
+            hintText: '~/Documents/ERF/my-project',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Import'),
+          ),
+        ],
+      ),
+    );
+
+    final folderPath = controller.text.trim();
+    if (shouldImport != true || folderPath.isEmpty) return;
+    if (!context.mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final client = ref.read(apiClientProvider);
+    try {
+      // Reuse an existing erf source for this exact folder if one already
+      // exists, so re-importing the same folder stays idempotent instead of
+      // creating a fresh source (and re-importing every file) each time.
+      final sources = await client.listSources(orgId, projectId: project.id);
+      core.Source? existing;
+      for (final source in sources) {
+        if (source.kind == core.SourceKind.erf &&
+            source.config['folderPath'] == folderPath) {
+          existing = source;
+          break;
+        }
+      }
+      final source =
+          existing ??
+          await client.createSource(
+            orgId,
+            core.CreateSourceRequest(
+              kind: core.SourceKind.erf,
+              config: {'folderPath': folderPath},
+              projectId: project.id,
+            ),
+          );
+
+      final result = await client.scanErfSource(orgId, source.id);
+      ref.invalidate(taskSpecsProvider(orgId, project.id));
+      final failedFiles = result['failedFiles'] as List;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Scanned: ${result['newMessages']} new file(s), '
+            '${result['specsCreated']} Task Spec(s) drafted'
+            '${failedFiles.isEmpty ? '' : ', ${failedFiles.length} failed'}.',
+          ),
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Import failed: $e')));
+    }
   }
 }

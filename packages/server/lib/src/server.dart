@@ -8,6 +8,7 @@ import 'routes/conversations_routes.dart';
 import 'routes/dashboard_routes.dart';
 import 'routes/health_check_routes.dart';
 import 'routes/health_routes.dart';
+import 'routes/message_routes.dart';
 import 'routes/orgs_routes.dart';
 import 'routes/project_links_routes.dart';
 import 'routes/projects_routes.dart';
@@ -31,6 +32,7 @@ Router buildRouter(AppContext ctx) {
   registerConversationsRoutes(router, ctx);
   registerTaskSpecRoutes(router, ctx);
   registerSourceRoutes(router, ctx);
+  registerMessageRoutes(router, ctx);
 
   return router;
 }

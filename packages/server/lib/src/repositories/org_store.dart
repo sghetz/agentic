@@ -38,6 +38,14 @@ class SourceNotFound implements Exception {
   String toString() => 'SourceNotFound($id)';
 }
 
+class MessageNotFound implements Exception {
+  MessageNotFound(this.id);
+  final String id;
+
+  @override
+  String toString() => 'MessageNotFound($id)';
+}
+
 class DuplicateProjectSlug implements Exception {
   DuplicateProjectSlug(this.slug);
   final String slug;
@@ -783,6 +791,47 @@ class OrgStore {
     }
     final rows = await select.get();
     return rows.map(_messageToModel).toList();
+  }
+
+  Future<core.Message?> getMessage(String id) async {
+    final row = await (_db.select(
+      _db.messages,
+    )..where((m) => m.id.equals(id))).getSingleOrNull();
+    return row == null ? null : _messageToModel(row);
+  }
+
+  /// Org-wide: a message is unrouted when it came from a source that still
+  /// needs per-message routing and nothing (automatic or manual) has
+  /// assigned it a project yet. A project-scoped source's messages are
+  /// never unrouted -- their `routedProjectId` is set at creation time.
+  Future<List<core.Message>> listUnroutedMessages() async {
+    final rows =
+        await (_db.select(_db.messages)
+              ..where((m) => m.routedProjectId.isNull())
+              ..orderBy([(m) => OrderingTerm.asc(m.sentAt)]))
+            .get();
+    return rows.map(_messageToModel).toList();
+  }
+
+  /// Manually assigns a project to a message the owner is routing by hand
+  /// (one that came in below the auto-routing confidence threshold, or
+  /// whose routing attempt failed outright). Just the assignment -- whether
+  /// to then draft a Task Spec from it is the caller's decision, same
+  /// "route orchestrates, repository does one thing" split used elsewhere.
+  Future<core.Message> assignMessageProject(
+    String messageId,
+    String projectId,
+  ) async {
+    if (await getMessage(messageId) == null) {
+      throw MessageNotFound(messageId);
+    }
+    if (await getProject(projectId) == null) {
+      throw ProjectNotFound(projectId);
+    }
+
+    await (_db.update(_db.messages)..where((m) => m.id.equals(messageId)))
+        .write(MessagesCompanion(routedProjectId: Value(projectId)));
+    return (await getMessage(messageId))!;
   }
 
   // ---- row <-> core model mapping ----

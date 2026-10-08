@@ -59,6 +59,18 @@ Health's diagnosis already proved in Phase 1.
   extraction if routed) -- a 3-message import took about 30 seconds live. Fine for a manual,
   on-demand import of a reasonably-sized export; a much larger paste would be slow but not
   incorrect. Not parallelized in this first cut.
+- **UI source creation is minimal, not a full "manage sources" screen.** The Inbox's "Import
+  WhatsApp chat" action reuses one shared org-level WhatsApp source (get-or-create by kind, no
+  project) -- every paste funnels into the same unrouted pool, matching the Inbox's own mental
+  model and keeping re-pasting a growing export idempotent. The project list's "Import ERF
+  folder..." action reuses an existing erf source for that exact folder path if one exists,
+  otherwise creates one. Neither screen lists/edits/deletes sources directly; that's a reasonable
+  later addition, not needed to meet this phase's "Done when" bar.
+- **Manually assigning a project runs the same extraction step as auto-routing**, and only for a
+  message that hasn't been processed yet -- re-assigning an already-drafted message's project
+  doesn't retroactively redraft anything. Verified live: assigning a project to a message the
+  owner forced through (a personal, non-work message) correctly produced an honest "this doesn't
+  describe a software/work task" open question instead of fabricating a goal.
 
 ## Build order
 
@@ -84,5 +96,5 @@ copying.
 - [x] 1. TaskSpec model + AnalystExtractionService + manual-trigger route
 - [x] 2. sources/messages data model + ERF import
 - [x] 3. WhatsApp manual import + message routing with confidence
-- [ ] 4. Inbox + Task Spec review UI
+- [x] 4. Inbox + Task Spec review UI
 - [ ] 5. Morning briefing (dashboard extension)

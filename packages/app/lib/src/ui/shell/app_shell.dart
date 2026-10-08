@@ -52,24 +52,33 @@ class _MainTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDashboard = currentPath.startsWith('/dashboard');
     final isChat = currentPath.startsWith('/chat');
-    return Row(
-      children: [
-        _TabButton(
-          label: 'Tasks',
-          selected: !isDashboard && !isChat,
-          onTap: () => context.go('/tasks'),
-        ),
-        _TabButton(
-          label: 'Chat',
-          selected: isChat,
-          onTap: () => context.go('/chat'),
-        ),
-        _TabButton(
-          label: 'Dashboard',
-          selected: isDashboard,
-          onTap: () => context.go('/dashboard'),
-        ),
-      ],
+    final isInbox = currentPath.startsWith('/inbox');
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _TabButton(
+            label: 'Tasks',
+            selected: !isDashboard && !isChat && !isInbox,
+            onTap: () => context.go('/tasks'),
+          ),
+          _TabButton(
+            label: 'Chat',
+            selected: isChat,
+            onTap: () => context.go('/chat'),
+          ),
+          _TabButton(
+            label: 'Inbox',
+            selected: isInbox,
+            onTap: () => context.go('/inbox'),
+          ),
+          _TabButton(
+            label: 'Dashboard',
+            selected: isDashboard,
+            onTap: () => context.go('/dashboard'),
+          ),
+        ],
+      ),
     );
   }
 }

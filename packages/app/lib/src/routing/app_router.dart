@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../ui/chat/chat_screen.dart';
 import '../ui/dashboard/dashboard_screen.dart';
+import '../ui/inbox/inbox_screen.dart';
 import '../ui/shell/app_shell.dart';
 import '../ui/tasks/task_detail_screen.dart';
 import '../ui/tasks/task_list_screen.dart';
@@ -33,6 +34,10 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: '/chat',
             builder: (context, state) => const ChatScreen(),
+          ),
+          GoRoute(
+            path: '/inbox',
+            builder: (context, state) => const InboxScreen(),
           ),
         ],
       ),

@@ -48,6 +48,8 @@ Future<Response> guarded(Future<Response> Function() action) async {
     return notFoundResponse('Conversation ${e.id} not found');
   } on SourceNotFound catch (e) {
     return notFoundResponse('Source ${e.id} not found');
+  } on MessageNotFound catch (e) {
+    return notFoundResponse('Message ${e.id} not found');
   } on MarkItDownException catch (e) {
     return upstreamErrorResponse(e.message);
   } on CrossOrgLinkRejected catch (e) {

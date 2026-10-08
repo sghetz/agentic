@@ -173,5 +173,85 @@ void main() {
       final messages = await store.listMessages(sourceId: source.id);
       expect(messages.map((m) => m.body).toList(), ['first', 'second']);
     });
+
+    test(
+      'listUnroutedMessages returns only messages with no routedProjectId',
+      () async {
+        final source = await store.createSource(
+          const core.CreateSourceRequest(kind: core.SourceKind.whatsappImport),
+        );
+        final unrouted = await store.getOrCreateMessage(
+          sourceId: source.id,
+          externalId: 'unrouted',
+          sentAt: DateTime.utc(2026, 1, 1),
+          body: 'unrouted',
+          raw: const {},
+        );
+        final project = await store.createProject(
+          const core.CreateProjectRequest(name: 'P', slug: 'p'),
+        );
+        await store.getOrCreateMessage(
+          sourceId: source.id,
+          externalId: 'routed',
+          sentAt: DateTime.utc(2026, 1, 2),
+          body: 'routed',
+          raw: const {},
+          routedProjectId: project.id,
+        );
+
+        final result = await store.listUnroutedMessages();
+        expect(result.map((m) => m.id), [unrouted.id]);
+      },
+    );
+
+    test('assignMessageProject sets routedProjectId', () async {
+      final source = await store.createSource(
+        const core.CreateSourceRequest(kind: core.SourceKind.whatsappImport),
+      );
+      final message = await store.getOrCreateMessage(
+        sourceId: source.id,
+        externalId: 'x',
+        sentAt: DateTime.utc(2026, 1, 1),
+        body: 'x',
+        raw: const {},
+      );
+      final project = await store.createProject(
+        const core.CreateProjectRequest(name: 'P', slug: 'p'),
+      );
+
+      final updated = await store.assignMessageProject(message.id, project.id);
+
+      expect(updated.routedProjectId, project.id);
+      expect((await store.getMessage(message.id))!.routedProjectId, project.id);
+      expect(await store.listUnroutedMessages(), isEmpty);
+    });
+
+    test('assignMessageProject rejects an unknown messageId', () async {
+      final project = await store.createProject(
+        const core.CreateProjectRequest(name: 'P', slug: 'p'),
+      );
+      expect(
+        () => store.assignMessageProject('no-such-message', project.id),
+        throwsA(isA<MessageNotFound>()),
+      );
+    });
+
+    test('assignMessageProject rejects an unknown projectId', () async {
+      final source = await store.createSource(
+        const core.CreateSourceRequest(kind: core.SourceKind.whatsappImport),
+      );
+      final message = await store.getOrCreateMessage(
+        sourceId: source.id,
+        externalId: 'x',
+        sentAt: DateTime.utc(2026, 1, 1),
+        body: 'x',
+        raw: const {},
+      );
+
+      expect(
+        () => store.assignMessageProject(message.id, 'no-such-project'),
+        throwsA(isA<ProjectNotFound>()),
+      );
+    });
   });
 }

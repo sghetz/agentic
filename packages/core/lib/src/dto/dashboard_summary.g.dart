@@ -49,6 +49,8 @@ _DashboardOrgSummary _$DashboardOrgSummaryFromJson(
   recentActivity: (json['recentActivity'] as List<dynamic>)
       .map((e) => RecentActivityItem.fromJson(e as Map<String, dynamic>))
       .toList(),
+  unroutedMessageCount: (json['unroutedMessageCount'] as num?)?.toInt() ?? 0,
+  draftTaskSpecCount: (json['draftTaskSpecCount'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$DashboardOrgSummaryToJson(
@@ -60,6 +62,8 @@ Map<String, dynamic> _$DashboardOrgSummaryToJson(
     (k, e) => MapEntry(_$TaskStatusEnumMap[k]!, e),
   ),
   'recentActivity': instance.recentActivity.map((e) => e.toJson()).toList(),
+  'unroutedMessageCount': instance.unroutedMessageCount,
+  'draftTaskSpecCount': instance.draftTaskSpecCount,
 };
 
 const _$TaskStatusEnumMap = {

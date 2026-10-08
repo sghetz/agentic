@@ -298,7 +298,11 @@ as TaskEventType,
 /// @nodoc
 mixin _$DashboardOrgSummary {
 
- String get orgId; String get orgName; Map<TaskStatus, int> get taskCountsByStatus; List<RecentActivityItem> get recentActivity;
+ String get orgId; String get orgName; Map<TaskStatus, int> get taskCountsByStatus; List<RecentActivityItem> get recentActivity;/// Messages still waiting on a project assignment (routing confidence
+/// was below threshold, or routing failed outright) -- the morning
+/// briefing's "needs your attention" signal alongside [draftTaskSpecCount].
+ int get unroutedMessageCount;/// Total Task Spec artifacts drafted across every project in this org.
+ int get draftTaskSpecCount;
 /// Create a copy of DashboardOrgSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -312,20 +316,20 @@ $DashboardOrgSummaryCopyWith<DashboardOrgSummary> get copyWith => _$DashboardOrg
 @override
 bool operator ==(Object other) {
   final _this = this as DashboardOrgSummary;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardOrgSummary&&(identical(other.orgId, _this.orgId) || other.orgId == _this.orgId)&&(identical(other.orgName, _this.orgName) || other.orgName == _this.orgName)&&const DeepCollectionEquality().equals(other.taskCountsByStatus, _this.taskCountsByStatus)&&const DeepCollectionEquality().equals(other.recentActivity, _this.recentActivity));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardOrgSummary&&(identical(other.orgId, _this.orgId) || other.orgId == _this.orgId)&&(identical(other.orgName, _this.orgName) || other.orgName == _this.orgName)&&const DeepCollectionEquality().equals(other.taskCountsByStatus, _this.taskCountsByStatus)&&const DeepCollectionEquality().equals(other.recentActivity, _this.recentActivity)&&(identical(other.unroutedMessageCount, _this.unroutedMessageCount) || other.unroutedMessageCount == _this.unroutedMessageCount)&&(identical(other.draftTaskSpecCount, _this.draftTaskSpecCount) || other.draftTaskSpecCount == _this.draftTaskSpecCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as DashboardOrgSummary;
-  return Object.hash(runtimeType,_this.orgId,_this.orgName,const DeepCollectionEquality().hash(_this.taskCountsByStatus),const DeepCollectionEquality().hash(_this.recentActivity));
+  return Object.hash(runtimeType,_this.orgId,_this.orgName,const DeepCollectionEquality().hash(_this.taskCountsByStatus),const DeepCollectionEquality().hash(_this.recentActivity),_this.unroutedMessageCount,_this.draftTaskSpecCount);
 }
 
 @override
 String toString() {
   final _this = this as DashboardOrgSummary;
-  return 'DashboardOrgSummary(orgId: ${_this.orgId}, orgName: ${_this.orgName}, taskCountsByStatus: ${_this.taskCountsByStatus}, recentActivity: ${_this.recentActivity})';
+  return 'DashboardOrgSummary(orgId: ${_this.orgId}, orgName: ${_this.orgName}, taskCountsByStatus: ${_this.taskCountsByStatus}, recentActivity: ${_this.recentActivity}, unroutedMessageCount: ${_this.unroutedMessageCount}, draftTaskSpecCount: ${_this.draftTaskSpecCount})';
 }
 
 
@@ -336,7 +340,7 @@ abstract mixin class $DashboardOrgSummaryCopyWith<$Res>  {
   factory $DashboardOrgSummaryCopyWith(DashboardOrgSummary value, $Res Function(DashboardOrgSummary) _then) = _$DashboardOrgSummaryCopyWithImpl;
 @useResult
 $Res call({
- String orgId, String orgName, Map<TaskStatus, int> taskCountsByStatus, List<RecentActivityItem> recentActivity
+ String orgId, String orgName, Map<TaskStatus, int> taskCountsByStatus, List<RecentActivityItem> recentActivity, int unroutedMessageCount, int draftTaskSpecCount
 });
 
 
@@ -353,13 +357,15 @@ class _$DashboardOrgSummaryCopyWithImpl<$Res>
 
 /// Create a copy of DashboardOrgSummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? orgId = null,Object? orgName = null,Object? taskCountsByStatus = null,Object? recentActivity = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? orgId = null,Object? orgName = null,Object? taskCountsByStatus = null,Object? recentActivity = null,Object? unroutedMessageCount = null,Object? draftTaskSpecCount = null,}) {
   return _then(DashboardOrgSummary(
 orgId: null == orgId ? _self.orgId : orgId // ignore: cast_nullable_to_non_nullable
 as String,orgName: null == orgName ? _self.orgName : orgName // ignore: cast_nullable_to_non_nullable
 as String,taskCountsByStatus: null == taskCountsByStatus ? _self.taskCountsByStatus : taskCountsByStatus // ignore: cast_nullable_to_non_nullable
 as Map<TaskStatus, int>,recentActivity: null == recentActivity ? _self.recentActivity : recentActivity // ignore: cast_nullable_to_non_nullable
-as List<RecentActivityItem>,
+as List<RecentActivityItem>,unroutedMessageCount: null == unroutedMessageCount ? _self.unroutedMessageCount : unroutedMessageCount // ignore: cast_nullable_to_non_nullable
+as int,draftTaskSpecCount: null == draftTaskSpecCount ? _self.draftTaskSpecCount : draftTaskSpecCount // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -441,10 +447,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String orgId,  String orgName,  Map<TaskStatus, int> taskCountsByStatus,  List<RecentActivityItem> recentActivity)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String orgId,  String orgName,  Map<TaskStatus, int> taskCountsByStatus,  List<RecentActivityItem> recentActivity,  int unroutedMessageCount,  int draftTaskSpecCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DashboardOrgSummary() when $default != null:
-return $default(_that.orgId,_that.orgName,_that.taskCountsByStatus,_that.recentActivity);case _:
+return $default(_that.orgId,_that.orgName,_that.taskCountsByStatus,_that.recentActivity,_that.unroutedMessageCount,_that.draftTaskSpecCount);case _:
   return orElse();
 
 }
@@ -462,10 +468,10 @@ return $default(_that.orgId,_that.orgName,_that.taskCountsByStatus,_that.recentA
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String orgId,  String orgName,  Map<TaskStatus, int> taskCountsByStatus,  List<RecentActivityItem> recentActivity)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String orgId,  String orgName,  Map<TaskStatus, int> taskCountsByStatus,  List<RecentActivityItem> recentActivity,  int unroutedMessageCount,  int draftTaskSpecCount)  $default,) {final _that = this;
 switch (_that) {
 case _DashboardOrgSummary():
-return $default(_that.orgId,_that.orgName,_that.taskCountsByStatus,_that.recentActivity);}
+return $default(_that.orgId,_that.orgName,_that.taskCountsByStatus,_that.recentActivity,_that.unroutedMessageCount,_that.draftTaskSpecCount);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -479,10 +485,10 @@ return $default(_that.orgId,_that.orgName,_that.taskCountsByStatus,_that.recentA
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String orgId,  String orgName,  Map<TaskStatus, int> taskCountsByStatus,  List<RecentActivityItem> recentActivity)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String orgId,  String orgName,  Map<TaskStatus, int> taskCountsByStatus,  List<RecentActivityItem> recentActivity,  int unroutedMessageCount,  int draftTaskSpecCount)?  $default,) {final _that = this;
 switch (_that) {
 case _DashboardOrgSummary() when $default != null:
-return $default(_that.orgId,_that.orgName,_that.taskCountsByStatus,_that.recentActivity);case _:
+return $default(_that.orgId,_that.orgName,_that.taskCountsByStatus,_that.recentActivity,_that.unroutedMessageCount,_that.draftTaskSpecCount);case _:
   return null;
 
 }
@@ -494,7 +500,7 @@ return $default(_that.orgId,_that.orgName,_that.taskCountsByStatus,_that.recentA
 @JsonSerializable()
 
 class _DashboardOrgSummary implements DashboardOrgSummary {
-  const _DashboardOrgSummary({required this.orgId, required this.orgName, required  Map<TaskStatus, int> taskCountsByStatus, required  List<RecentActivityItem> recentActivity}): _taskCountsByStatus = taskCountsByStatus,_recentActivity = recentActivity;
+  const _DashboardOrgSummary({required this.orgId, required this.orgName, required  Map<TaskStatus, int> taskCountsByStatus, required  List<RecentActivityItem> recentActivity, this.unroutedMessageCount = 0, this.draftTaskSpecCount = 0}): _taskCountsByStatus = taskCountsByStatus,_recentActivity = recentActivity;
   factory _DashboardOrgSummary.fromJson(Map<String, dynamic> json) => _$DashboardOrgSummaryFromJson(json);
 
 @override final  String orgId;
@@ -513,6 +519,12 @@ class _DashboardOrgSummary implements DashboardOrgSummary {
   return EqualUnmodifiableListView(_recentActivity);
 }
 
+/// Messages still waiting on a project assignment (routing confidence
+/// was below threshold, or routing failed outright) -- the morning
+/// briefing's "needs your attention" signal alongside [draftTaskSpecCount].
+@override@JsonKey() final  int unroutedMessageCount;
+/// Total Task Spec artifacts drafted across every project in this org.
+@override@JsonKey() final  int draftTaskSpecCount;
 
 /// Create a copy of DashboardOrgSummary
 /// with the given fields replaced by the non-null parameter values.
@@ -527,18 +539,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardOrgSummary&&(identical(other.orgId, orgId) || other.orgId == orgId)&&(identical(other.orgName, orgName) || other.orgName == orgName)&&const DeepCollectionEquality().equals(other.taskCountsByStatus, _taskCountsByStatus)&&const DeepCollectionEquality().equals(other.recentActivity, _recentActivity));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardOrgSummary&&(identical(other.orgId, orgId) || other.orgId == orgId)&&(identical(other.orgName, orgName) || other.orgName == orgName)&&const DeepCollectionEquality().equals(other.taskCountsByStatus, _taskCountsByStatus)&&const DeepCollectionEquality().equals(other.recentActivity, _recentActivity)&&(identical(other.unroutedMessageCount, unroutedMessageCount) || other.unroutedMessageCount == unroutedMessageCount)&&(identical(other.draftTaskSpecCount, draftTaskSpecCount) || other.draftTaskSpecCount == draftTaskSpecCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,orgId,orgName,const DeepCollectionEquality().hash(_taskCountsByStatus),const DeepCollectionEquality().hash(_recentActivity));
+    return Object.hash(runtimeType,orgId,orgName,const DeepCollectionEquality().hash(_taskCountsByStatus),const DeepCollectionEquality().hash(_recentActivity),unroutedMessageCount,draftTaskSpecCount);
 }
 
 @override
 String toString() {
-    return 'DashboardOrgSummary(orgId: $orgId, orgName: $orgName, taskCountsByStatus: $taskCountsByStatus, recentActivity: $recentActivity)';
+    return 'DashboardOrgSummary(orgId: $orgId, orgName: $orgName, taskCountsByStatus: $taskCountsByStatus, recentActivity: $recentActivity, unroutedMessageCount: $unroutedMessageCount, draftTaskSpecCount: $draftTaskSpecCount)';
 }
 
 
@@ -549,7 +561,7 @@ abstract mixin class _$DashboardOrgSummaryCopyWith<$Res> implements $DashboardOr
   factory _$DashboardOrgSummaryCopyWith(_DashboardOrgSummary value, $Res Function(_DashboardOrgSummary) _then) = __$DashboardOrgSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- String orgId, String orgName, Map<TaskStatus, int> taskCountsByStatus, List<RecentActivityItem> recentActivity
+ String orgId, String orgName, Map<TaskStatus, int> taskCountsByStatus, List<RecentActivityItem> recentActivity, int unroutedMessageCount, int draftTaskSpecCount
 });
 
 
@@ -566,13 +578,15 @@ class __$DashboardOrgSummaryCopyWithImpl<$Res>
 
 /// Create a copy of DashboardOrgSummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? orgId = null,Object? orgName = null,Object? taskCountsByStatus = null,Object? recentActivity = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? orgId = null,Object? orgName = null,Object? taskCountsByStatus = null,Object? recentActivity = null,Object? unroutedMessageCount = null,Object? draftTaskSpecCount = null,}) {
   return _then(_DashboardOrgSummary(
 orgId: null == orgId ? _self.orgId : orgId // ignore: cast_nullable_to_non_nullable
 as String,orgName: null == orgName ? _self.orgName : orgName // ignore: cast_nullable_to_non_nullable
 as String,taskCountsByStatus: null == taskCountsByStatus ? _self._taskCountsByStatus : taskCountsByStatus // ignore: cast_nullable_to_non_nullable
 as Map<TaskStatus, int>,recentActivity: null == recentActivity ? _self._recentActivity : recentActivity // ignore: cast_nullable_to_non_nullable
-as List<RecentActivityItem>,
+as List<RecentActivityItem>,unroutedMessageCount: null == unroutedMessageCount ? _self.unroutedMessageCount : unroutedMessageCount // ignore: cast_nullable_to_non_nullable
+as int,draftTaskSpecCount: null == draftTaskSpecCount ? _self.draftTaskSpecCount : draftTaskSpecCount // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

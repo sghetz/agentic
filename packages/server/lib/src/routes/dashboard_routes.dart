@@ -40,12 +40,20 @@ void registerDashboardRoutes(Router router, AppContext ctx) {
           );
         }
 
+        final unroutedMessageCount =
+            (await store.listUnroutedMessages()).length;
+        final draftTaskSpecCount = await store.countArtifactsByKind(
+          core.ArtifactKind.taskSpec,
+        );
+
         summaries.add(
           core.DashboardOrgSummary(
             orgId: org.id,
             orgName: org.name,
             taskCountsByStatus: counts,
             recentActivity: recentActivity,
+            unroutedMessageCount: unroutedMessageCount,
+            draftTaskSpecCount: draftTaskSpecCount,
           ),
         );
       }

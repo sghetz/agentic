@@ -77,4 +77,49 @@ void main() {
 
     expect(find.text('No organizations yet'), findsOneWidget);
   });
+
+  testWidgets(
+    'shows unrouted message and draft Task Spec counts when present',
+    (tester) async {
+      final summary = core.DashboardSummary(
+        orgs: [
+          core.DashboardOrgSummary(
+            orgId: 'org-a',
+            orgName: 'Org A',
+            taskCountsByStatus: const {},
+            recentActivity: const [],
+            unroutedMessageCount: 2,
+            draftTaskSpecCount: 1,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(_wrap(summary));
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 unrouted messages'), findsOneWidget);
+      expect(find.text('1 draft Task Spec'), findsOneWidget);
+    },
+  );
+
+  testWidgets('shows nothing extra when there is nothing needing attention', (
+    tester,
+  ) async {
+    final summary = core.DashboardSummary(
+      orgs: [
+        core.DashboardOrgSummary(
+          orgId: 'org-a',
+          orgName: 'Org A',
+          taskCountsByStatus: const {},
+          recentActivity: const [],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(_wrap(summary));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('unrouted message'), findsNothing);
+    expect(find.textContaining('draft Task Spec'), findsNothing);
+  });
 }

@@ -33,6 +33,14 @@ sealed class DashboardOrgSummary with _$DashboardOrgSummary {
     required String orgName,
     required Map<TaskStatus, int> taskCountsByStatus,
     required List<RecentActivityItem> recentActivity,
+
+    /// Messages still waiting on a project assignment (routing confidence
+    /// was below threshold, or routing failed outright) -- the morning
+    /// briefing's "needs your attention" signal alongside [draftTaskSpecCount].
+    @Default(0) int unroutedMessageCount,
+
+    /// Total Task Spec artifacts drafted across every project in this org.
+    @Default(0) int draftTaskSpecCount,
   }) = _DashboardOrgSummary;
 
   factory DashboardOrgSummary.fromJson(Map<String, Object?> json) =>

@@ -97,4 +97,4 @@ copying.
 - [x] 2. sources/messages data model + ERF import
 - [x] 3. WhatsApp manual import + message routing with confidence
 - [x] 4. Inbox + Task Spec review UI
-- [ ] 5. Morning briefing (dashboard extension)
+- [x] 5. Morning briefing (dashboard extension)

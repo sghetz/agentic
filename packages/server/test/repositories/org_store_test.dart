@@ -445,5 +445,39 @@ void main() {
         throwsA(isA<TaskNotFound>()),
       );
     });
+
+    test(
+      'countArtifactsByKind counts across every project in the org',
+      () async {
+        final projectA = await store.createProject(
+          const core.CreateProjectRequest(name: 'A', slug: 'a'),
+        );
+        final projectB = await store.createProject(
+          const core.CreateProjectRequest(name: 'B', slug: 'b'),
+        );
+        await store.createProjectArtifact(
+          projectA.id,
+          kind: core.ArtifactKind.taskSpec,
+          uri: 'task-spec:a:1',
+        );
+        await store.createProjectArtifact(
+          projectB.id,
+          kind: core.ArtifactKind.taskSpec,
+          uri: 'task-spec:b:1',
+        );
+        await store.createProjectArtifact(
+          projectA.id,
+          kind: core.ArtifactKind.healthReport,
+          uri: 'health-report:a:1',
+        );
+
+        expect(await store.countArtifactsByKind(core.ArtifactKind.taskSpec), 2);
+        expect(
+          await store.countArtifactsByKind(core.ArtifactKind.healthReport),
+          1,
+        );
+        expect(await store.countArtifactsByKind(core.ArtifactKind.pr), 0);
+      },
+    );
   });
 }

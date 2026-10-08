@@ -540,6 +540,16 @@ class OrgStore {
     return rows.map(_artifactToModel).toList();
   }
 
+  /// Org-wide count, across every project -- used by the morning briefing,
+  /// which needs "how many Task Specs exist in this org" rather than one
+  /// project's worth.
+  Future<int> countArtifactsByKind(core.ArtifactKind kind) async {
+    final rows = await (_db.select(
+      _db.artifacts,
+    )..where((a) => a.kind.equalsValue(kind))).get();
+    return rows.length;
+  }
+
   // ---- Conversations ----
 
   /// Returns the one conversation for this (projectId, channel) scope,

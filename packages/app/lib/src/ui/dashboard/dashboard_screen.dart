@@ -84,6 +84,11 @@ class _OrgSummaryCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _StatusCounts(counts: summary.taskCountsByStatus),
+            if (summary.unroutedMessageCount > 0 ||
+                summary.draftTaskSpecCount > 0) ...[
+              const SizedBox(height: 12),
+              _NeedsAttentionRow(summary: summary),
+            ],
             const SizedBox(height: 16),
             Text(
               'Recent activity',
@@ -105,6 +110,47 @@ class _OrgSummaryCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The morning briefing's "needs your attention" signal: unrouted messages
+/// waiting on a project assignment, and Task Specs drafted but not yet
+/// acted on. Only shown when there's actually something to flag.
+class _NeedsAttentionRow extends StatelessWidget {
+  const _NeedsAttentionRow({required this.summary});
+
+  final core.DashboardOrgSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.errorContainer;
+    final onColor = Theme.of(context).colorScheme.onErrorContainer;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        if (summary.unroutedMessageCount > 0)
+          Chip(
+            backgroundColor: color,
+            avatar: Icon(Icons.inbox_outlined, size: 16, color: onColor),
+            label: Text(
+              '${summary.unroutedMessageCount} unrouted message'
+              '${summary.unroutedMessageCount == 1 ? '' : 's'}',
+              style: TextStyle(color: onColor),
+            ),
+          ),
+        if (summary.draftTaskSpecCount > 0)
+          Chip(
+            backgroundColor: color,
+            avatar: Icon(Icons.description_outlined, size: 16, color: onColor),
+            label: Text(
+              '${summary.draftTaskSpecCount} draft Task Spec'
+              '${summary.draftTaskSpecCount == 1 ? '' : 's'}',
+              style: TextStyle(color: onColor),
+            ),
+          ),
+      ],
     );
   }
 }

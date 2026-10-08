@@ -41,10 +41,11 @@ Health's diagnosis already proved in Phase 1.
   `DashboardSummary` already assembles every org's data in memory from separate per-org reads
   (built in Phase 0), which is exactly the "morning briefing" shape. It gains unrouted-message and
   draft-Task-Spec counts per org; still request-time computed, not cached or scheduled.
-- **MarkItDown is not yet installed** on this machine (`markitdown` CLI absent, `pip show
-  markitdown` empty). Not needed until the ERF slice -- will confirm with the owner how to get it
-  installed (`pipx install markitdown` is the usual route) when we get there, rather than installing
-  a new Python package without asking first.
+- **MarkItDown installed via `pip3 install markitdown`** (pipx wasn't available on this machine)
+  once we reached this slice, with the owner's explicit go-ahead first. Resolves via the
+  `markitdown` CLI on `$PATH`; `MarkItDownService` wraps it the same way `GitService` wraps `git`
+  -- deterministic, no LLM involvement, tested against the real CLI (free, unlike Claude Code
+  calls) rather than a fake.
 - **ERF -> Task Spec is one file -> one message -> one Task Spec** for this first cut, even though
   a real ERF document often contains several distinct requirements that arguably deserve separate
   specs. Splitting a single document into multiple specs is a reasonable later refinement, not
@@ -72,7 +73,7 @@ copying.
 (Update after each approved slice.)
 
 - [x] 1. TaskSpec model + AnalystExtractionService + manual-trigger route
-- [ ] 2. sources/messages data model + ERF import
+- [x] 2. sources/messages data model + ERF import
 - [ ] 3. WhatsApp manual import + message routing with confidence
 - [ ] 4. Inbox + Task Spec review UI
 - [ ] 5. Morning briefing (dashboard extension)

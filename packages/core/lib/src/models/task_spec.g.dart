@@ -30,6 +30,7 @@ _TaskSpec _$TaskSpecFromJson(Map<String, dynamic> json) => _TaskSpec(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  sourceMessageId: json['sourceMessageId'] as String?,
 );
 
 Map<String, dynamic> _$TaskSpecToJson(_TaskSpec instance) => <String, dynamic>{
@@ -40,6 +41,7 @@ Map<String, dynamic> _$TaskSpecToJson(_TaskSpec instance) => <String, dynamic>{
   'affectedAreas': instance.affectedAreas,
   'priority': _$TaskSpecPriorityEnumMap[instance.priority]!,
   'openQuestions': instance.openQuestions,
+  'sourceMessageId': instance.sourceMessageId,
 };
 
 const _$TaskSpecPriorityEnumMap = {

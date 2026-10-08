@@ -11,6 +11,7 @@ import 'routes/health_routes.dart';
 import 'routes/orgs_routes.dart';
 import 'routes/project_links_routes.dart';
 import 'routes/projects_routes.dart';
+import 'routes/source_routes.dart';
 import 'routes/task_events_routes.dart';
 import 'routes/task_spec_routes.dart';
 import 'routes/tasks_routes.dart';
@@ -29,6 +30,7 @@ Router buildRouter(AppContext ctx) {
   registerHealthCheckRoutes(router, ctx);
   registerConversationsRoutes(router, ctx);
   registerTaskSpecRoutes(router, ctx);
+  registerSourceRoutes(router, ctx);
 
   return router;
 }

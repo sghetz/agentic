@@ -16,7 +16,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TaskSpec {
 
- String get projectId; String get goal; List<String> get requirementIds; List<String> get acceptanceCriteria; List<String> get affectedAreas; TaskSpecPriority get priority; List<String> get openQuestions;
+ String get projectId; String get goal; List<String> get requirementIds; List<String> get acceptanceCriteria; List<String> get affectedAreas; TaskSpecPriority get priority; List<String> get openQuestions;/// The [Message] this spec was drafted from, if any -- unset for specs
+/// extracted via the manual-trigger route (no message exists yet).
+ String? get sourceMessageId;
 /// Create a copy of TaskSpec
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +32,20 @@ $TaskSpecCopyWith<TaskSpec> get copyWith => _$TaskSpecCopyWithImpl<TaskSpec>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as TaskSpec;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TaskSpec&&(identical(other.projectId, _this.projectId) || other.projectId == _this.projectId)&&(identical(other.goal, _this.goal) || other.goal == _this.goal)&&const DeepCollectionEquality().equals(other.requirementIds, _this.requirementIds)&&const DeepCollectionEquality().equals(other.acceptanceCriteria, _this.acceptanceCriteria)&&const DeepCollectionEquality().equals(other.affectedAreas, _this.affectedAreas)&&(identical(other.priority, _this.priority) || other.priority == _this.priority)&&const DeepCollectionEquality().equals(other.openQuestions, _this.openQuestions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TaskSpec&&(identical(other.projectId, _this.projectId) || other.projectId == _this.projectId)&&(identical(other.goal, _this.goal) || other.goal == _this.goal)&&const DeepCollectionEquality().equals(other.requirementIds, _this.requirementIds)&&const DeepCollectionEquality().equals(other.acceptanceCriteria, _this.acceptanceCriteria)&&const DeepCollectionEquality().equals(other.affectedAreas, _this.affectedAreas)&&(identical(other.priority, _this.priority) || other.priority == _this.priority)&&const DeepCollectionEquality().equals(other.openQuestions, _this.openQuestions)&&(identical(other.sourceMessageId, _this.sourceMessageId) || other.sourceMessageId == _this.sourceMessageId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as TaskSpec;
-  return Object.hash(runtimeType,_this.projectId,_this.goal,const DeepCollectionEquality().hash(_this.requirementIds),const DeepCollectionEquality().hash(_this.acceptanceCriteria),const DeepCollectionEquality().hash(_this.affectedAreas),_this.priority,const DeepCollectionEquality().hash(_this.openQuestions));
+  return Object.hash(runtimeType,_this.projectId,_this.goal,const DeepCollectionEquality().hash(_this.requirementIds),const DeepCollectionEquality().hash(_this.acceptanceCriteria),const DeepCollectionEquality().hash(_this.affectedAreas),_this.priority,const DeepCollectionEquality().hash(_this.openQuestions),_this.sourceMessageId);
 }
 
 @override
 String toString() {
   final _this = this as TaskSpec;
-  return 'TaskSpec(projectId: ${_this.projectId}, goal: ${_this.goal}, requirementIds: ${_this.requirementIds}, acceptanceCriteria: ${_this.acceptanceCriteria}, affectedAreas: ${_this.affectedAreas}, priority: ${_this.priority}, openQuestions: ${_this.openQuestions})';
+  return 'TaskSpec(projectId: ${_this.projectId}, goal: ${_this.goal}, requirementIds: ${_this.requirementIds}, acceptanceCriteria: ${_this.acceptanceCriteria}, affectedAreas: ${_this.affectedAreas}, priority: ${_this.priority}, openQuestions: ${_this.openQuestions}, sourceMessageId: ${_this.sourceMessageId})';
 }
 
 
@@ -54,7 +56,7 @@ abstract mixin class $TaskSpecCopyWith<$Res>  {
   factory $TaskSpecCopyWith(TaskSpec value, $Res Function(TaskSpec) _then) = _$TaskSpecCopyWithImpl;
 @useResult
 $Res call({
- String projectId, String goal, List<String> requirementIds, List<String> acceptanceCriteria, List<String> affectedAreas, TaskSpecPriority priority, List<String> openQuestions
+ String projectId, String goal, List<String> requirementIds, List<String> acceptanceCriteria, List<String> affectedAreas, TaskSpecPriority priority, List<String> openQuestions, String? sourceMessageId
 });
 
 
@@ -71,7 +73,7 @@ class _$TaskSpecCopyWithImpl<$Res>
 
 /// Create a copy of TaskSpec
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? projectId = null,Object? goal = null,Object? requirementIds = null,Object? acceptanceCriteria = null,Object? affectedAreas = null,Object? priority = null,Object? openQuestions = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? projectId = null,Object? goal = null,Object? requirementIds = null,Object? acceptanceCriteria = null,Object? affectedAreas = null,Object? priority = null,Object? openQuestions = null,Object? sourceMessageId = freezed,}) {
   return _then(TaskSpec(
 projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
 as String,goal: null == goal ? _self.goal : goal // ignore: cast_nullable_to_non_nullable
@@ -80,7 +82,8 @@ as List<String>,acceptanceCriteria: null == acceptanceCriteria ? _self.acceptanc
 as List<String>,affectedAreas: null == affectedAreas ? _self.affectedAreas : affectedAreas // ignore: cast_nullable_to_non_nullable
 as List<String>,priority: null == priority ? _self.priority : priority // ignore: cast_nullable_to_non_nullable
 as TaskSpecPriority,openQuestions: null == openQuestions ? _self.openQuestions : openQuestions // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,sourceMessageId: freezed == sourceMessageId ? _self.sourceMessageId : sourceMessageId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -162,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String projectId,  String goal,  List<String> requirementIds,  List<String> acceptanceCriteria,  List<String> affectedAreas,  TaskSpecPriority priority,  List<String> openQuestions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String projectId,  String goal,  List<String> requirementIds,  List<String> acceptanceCriteria,  List<String> affectedAreas,  TaskSpecPriority priority,  List<String> openQuestions,  String? sourceMessageId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TaskSpec() when $default != null:
-return $default(_that.projectId,_that.goal,_that.requirementIds,_that.acceptanceCriteria,_that.affectedAreas,_that.priority,_that.openQuestions);case _:
+return $default(_that.projectId,_that.goal,_that.requirementIds,_that.acceptanceCriteria,_that.affectedAreas,_that.priority,_that.openQuestions,_that.sourceMessageId);case _:
   return orElse();
 
 }
@@ -183,10 +186,10 @@ return $default(_that.projectId,_that.goal,_that.requirementIds,_that.acceptance
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String projectId,  String goal,  List<String> requirementIds,  List<String> acceptanceCriteria,  List<String> affectedAreas,  TaskSpecPriority priority,  List<String> openQuestions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String projectId,  String goal,  List<String> requirementIds,  List<String> acceptanceCriteria,  List<String> affectedAreas,  TaskSpecPriority priority,  List<String> openQuestions,  String? sourceMessageId)  $default,) {final _that = this;
 switch (_that) {
 case _TaskSpec():
-return $default(_that.projectId,_that.goal,_that.requirementIds,_that.acceptanceCriteria,_that.affectedAreas,_that.priority,_that.openQuestions);}
+return $default(_that.projectId,_that.goal,_that.requirementIds,_that.acceptanceCriteria,_that.affectedAreas,_that.priority,_that.openQuestions,_that.sourceMessageId);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -200,10 +203,10 @@ return $default(_that.projectId,_that.goal,_that.requirementIds,_that.acceptance
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String projectId,  String goal,  List<String> requirementIds,  List<String> acceptanceCriteria,  List<String> affectedAreas,  TaskSpecPriority priority,  List<String> openQuestions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String projectId,  String goal,  List<String> requirementIds,  List<String> acceptanceCriteria,  List<String> affectedAreas,  TaskSpecPriority priority,  List<String> openQuestions,  String? sourceMessageId)?  $default,) {final _that = this;
 switch (_that) {
 case _TaskSpec() when $default != null:
-return $default(_that.projectId,_that.goal,_that.requirementIds,_that.acceptanceCriteria,_that.affectedAreas,_that.priority,_that.openQuestions);case _:
+return $default(_that.projectId,_that.goal,_that.requirementIds,_that.acceptanceCriteria,_that.affectedAreas,_that.priority,_that.openQuestions,_that.sourceMessageId);case _:
   return null;
 
 }
@@ -215,7 +218,7 @@ return $default(_that.projectId,_that.goal,_that.requirementIds,_that.acceptance
 @JsonSerializable()
 
 class _TaskSpec implements TaskSpec {
-  const _TaskSpec({required this.projectId, required this.goal,  List<String> requirementIds = const [],  List<String> acceptanceCriteria = const [],  List<String> affectedAreas = const [], required this.priority,  List<String> openQuestions = const []}): _requirementIds = requirementIds,_acceptanceCriteria = acceptanceCriteria,_affectedAreas = affectedAreas,_openQuestions = openQuestions;
+  const _TaskSpec({required this.projectId, required this.goal,  List<String> requirementIds = const [],  List<String> acceptanceCriteria = const [],  List<String> affectedAreas = const [], required this.priority,  List<String> openQuestions = const [], this.sourceMessageId}): _requirementIds = requirementIds,_acceptanceCriteria = acceptanceCriteria,_affectedAreas = affectedAreas,_openQuestions = openQuestions;
   factory _TaskSpec.fromJson(Map<String, dynamic> json) => _$TaskSpecFromJson(json);
 
 @override final  String projectId;
@@ -249,6 +252,9 @@ class _TaskSpec implements TaskSpec {
   return EqualUnmodifiableListView(_openQuestions);
 }
 
+/// The [Message] this spec was drafted from, if any -- unset for specs
+/// extracted via the manual-trigger route (no message exists yet).
+@override final  String? sourceMessageId;
 
 /// Create a copy of TaskSpec
 /// with the given fields replaced by the non-null parameter values.
@@ -263,18 +269,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TaskSpec&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.goal, goal) || other.goal == goal)&&const DeepCollectionEquality().equals(other.requirementIds, _requirementIds)&&const DeepCollectionEquality().equals(other.acceptanceCriteria, _acceptanceCriteria)&&const DeepCollectionEquality().equals(other.affectedAreas, _affectedAreas)&&(identical(other.priority, priority) || other.priority == priority)&&const DeepCollectionEquality().equals(other.openQuestions, _openQuestions));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TaskSpec&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.goal, goal) || other.goal == goal)&&const DeepCollectionEquality().equals(other.requirementIds, _requirementIds)&&const DeepCollectionEquality().equals(other.acceptanceCriteria, _acceptanceCriteria)&&const DeepCollectionEquality().equals(other.affectedAreas, _affectedAreas)&&(identical(other.priority, priority) || other.priority == priority)&&const DeepCollectionEquality().equals(other.openQuestions, _openQuestions)&&(identical(other.sourceMessageId, sourceMessageId) || other.sourceMessageId == sourceMessageId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,projectId,goal,const DeepCollectionEquality().hash(_requirementIds),const DeepCollectionEquality().hash(_acceptanceCriteria),const DeepCollectionEquality().hash(_affectedAreas),priority,const DeepCollectionEquality().hash(_openQuestions));
+    return Object.hash(runtimeType,projectId,goal,const DeepCollectionEquality().hash(_requirementIds),const DeepCollectionEquality().hash(_acceptanceCriteria),const DeepCollectionEquality().hash(_affectedAreas),priority,const DeepCollectionEquality().hash(_openQuestions),sourceMessageId);
 }
 
 @override
 String toString() {
-    return 'TaskSpec(projectId: $projectId, goal: $goal, requirementIds: $requirementIds, acceptanceCriteria: $acceptanceCriteria, affectedAreas: $affectedAreas, priority: $priority, openQuestions: $openQuestions)';
+    return 'TaskSpec(projectId: $projectId, goal: $goal, requirementIds: $requirementIds, acceptanceCriteria: $acceptanceCriteria, affectedAreas: $affectedAreas, priority: $priority, openQuestions: $openQuestions, sourceMessageId: $sourceMessageId)';
 }
 
 
@@ -285,7 +291,7 @@ abstract mixin class _$TaskSpecCopyWith<$Res> implements $TaskSpecCopyWith<$Res>
   factory _$TaskSpecCopyWith(_TaskSpec value, $Res Function(_TaskSpec) _then) = __$TaskSpecCopyWithImpl;
 @override @useResult
 $Res call({
- String projectId, String goal, List<String> requirementIds, List<String> acceptanceCriteria, List<String> affectedAreas, TaskSpecPriority priority, List<String> openQuestions
+ String projectId, String goal, List<String> requirementIds, List<String> acceptanceCriteria, List<String> affectedAreas, TaskSpecPriority priority, List<String> openQuestions, String? sourceMessageId
 });
 
 
@@ -302,7 +308,7 @@ class __$TaskSpecCopyWithImpl<$Res>
 
 /// Create a copy of TaskSpec
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? projectId = null,Object? goal = null,Object? requirementIds = null,Object? acceptanceCriteria = null,Object? affectedAreas = null,Object? priority = null,Object? openQuestions = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? projectId = null,Object? goal = null,Object? requirementIds = null,Object? acceptanceCriteria = null,Object? affectedAreas = null,Object? priority = null,Object? openQuestions = null,Object? sourceMessageId = freezed,}) {
   return _then(_TaskSpec(
 projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
 as String,goal: null == goal ? _self.goal : goal // ignore: cast_nullable_to_non_nullable
@@ -311,7 +317,8 @@ as List<String>,acceptanceCriteria: null == acceptanceCriteria ? _self._acceptan
 as List<String>,affectedAreas: null == affectedAreas ? _self._affectedAreas : affectedAreas // ignore: cast_nullable_to_non_nullable
 as List<String>,priority: null == priority ? _self.priority : priority // ignore: cast_nullable_to_non_nullable
 as TaskSpecPriority,openQuestions: null == openQuestions ? _self._openQuestions : openQuestions // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,sourceMessageId: freezed == sourceMessageId ? _self.sourceMessageId : sourceMessageId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

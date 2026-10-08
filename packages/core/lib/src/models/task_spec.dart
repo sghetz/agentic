@@ -20,6 +20,10 @@ sealed class TaskSpec with _$TaskSpec {
     @Default([]) List<String> affectedAreas,
     required TaskSpecPriority priority,
     @Default([]) List<String> openQuestions,
+
+    /// The [Message] this spec was drafted from, if any -- unset for specs
+    /// extracted via the manual-trigger route (no message exists yet).
+    String? sourceMessageId,
   }) = _TaskSpec;
 
   factory TaskSpec.fromJson(Map<String, Object?> json) =>

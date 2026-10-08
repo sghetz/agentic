@@ -3017,6 +3017,1012 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
   }
 }
 
+class $SourcesTable extends Sources with TableInfo<$SourcesTable, SourceRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SourcesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<SourceKind, String> kind =
+      GeneratedColumn<String>(
+        'kind',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<SourceKind>($SourcesTable.$converterkind);
+  static const VerificationMeta _configJsonMeta = const VerificationMeta(
+    'configJson',
+  );
+  @override
+  late final GeneratedColumn<String> configJson = GeneratedColumn<String>(
+    'config_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _projectIdMeta = const VerificationMeta(
+    'projectId',
+  );
+  @override
+  late final GeneratedColumn<String> projectId = GeneratedColumn<String>(
+    'project_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES projects (id)',
+    ),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    kind,
+    configJson,
+    projectId,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sources';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SourceRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('config_json')) {
+      context.handle(
+        _configJsonMeta,
+        configJson.isAcceptableOrUnknown(data['config_json']!, _configJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_configJsonMeta);
+    }
+    if (data.containsKey('project_id')) {
+      context.handle(
+        _projectIdMeta,
+        projectId.isAcceptableOrUnknown(data['project_id']!, _projectIdMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SourceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SourceRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      kind: $SourcesTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      configJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}config_json'],
+      )!,
+      projectId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}project_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SourcesTable createAlias(String alias) {
+    return $SourcesTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<SourceKind, String, String> $converterkind =
+      const EnumNameConverter<SourceKind>(SourceKind.values);
+}
+
+class SourceRow extends DataClass implements Insertable<SourceRow> {
+  final String id;
+  final SourceKind kind;
+  final String configJson;
+  final String? projectId;
+  final DateTime createdAt;
+  const SourceRow({
+    required this.id,
+    required this.kind,
+    required this.configJson,
+    this.projectId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    {
+      map['kind'] = Variable<String>($SourcesTable.$converterkind.toSql(kind));
+    }
+    map['config_json'] = Variable<String>(configJson);
+    if (!nullToAbsent || projectId != null) {
+      map['project_id'] = Variable<String>(projectId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SourcesCompanion toCompanion(bool nullToAbsent) {
+    return SourcesCompanion(
+      id: Value(id),
+      kind: Value(kind),
+      configJson: Value(configJson),
+      projectId: projectId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(projectId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SourceRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SourceRow(
+      id: serializer.fromJson<String>(json['id']),
+      kind: $SourcesTable.$converterkind.fromJson(
+        serializer.fromJson<String>(json['kind']),
+      ),
+      configJson: serializer.fromJson<String>(json['configJson']),
+      projectId: serializer.fromJson<String?>(json['projectId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'kind': serializer.toJson<String>(
+        $SourcesTable.$converterkind.toJson(kind),
+      ),
+      'configJson': serializer.toJson<String>(configJson),
+      'projectId': serializer.toJson<String?>(projectId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SourceRow copyWith({
+    String? id,
+    SourceKind? kind,
+    String? configJson,
+    Value<String?> projectId = const Value.absent(),
+    DateTime? createdAt,
+  }) => SourceRow(
+    id: id ?? this.id,
+    kind: kind ?? this.kind,
+    configJson: configJson ?? this.configJson,
+    projectId: projectId.present ? projectId.value : this.projectId,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SourceRow copyWithCompanion(SourcesCompanion data) {
+    return SourceRow(
+      id: data.id.present ? data.id.value : this.id,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      configJson: data.configJson.present
+          ? data.configJson.value
+          : this.configJson,
+      projectId: data.projectId.present ? data.projectId.value : this.projectId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SourceRow(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('configJson: $configJson, ')
+          ..write('projectId: $projectId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, kind, configJson, projectId, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SourceRow &&
+          other.id == this.id &&
+          other.kind == this.kind &&
+          other.configJson == this.configJson &&
+          other.projectId == this.projectId &&
+          other.createdAt == this.createdAt);
+}
+
+class SourcesCompanion extends UpdateCompanion<SourceRow> {
+  final Value<String> id;
+  final Value<SourceKind> kind;
+  final Value<String> configJson;
+  final Value<String?> projectId;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const SourcesCompanion({
+    this.id = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.configJson = const Value.absent(),
+    this.projectId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SourcesCompanion.insert({
+    required String id,
+    required SourceKind kind,
+    required String configJson,
+    this.projectId = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       kind = Value(kind),
+       configJson = Value(configJson),
+       createdAt = Value(createdAt);
+  static Insertable<SourceRow> custom({
+    Expression<String>? id,
+    Expression<String>? kind,
+    Expression<String>? configJson,
+    Expression<String>? projectId,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (kind != null) 'kind': kind,
+      if (configJson != null) 'config_json': configJson,
+      if (projectId != null) 'project_id': projectId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SourcesCompanion copyWith({
+    Value<String>? id,
+    Value<SourceKind>? kind,
+    Value<String>? configJson,
+    Value<String?>? projectId,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return SourcesCompanion(
+      id: id ?? this.id,
+      kind: kind ?? this.kind,
+      configJson: configJson ?? this.configJson,
+      projectId: projectId ?? this.projectId,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(
+        $SourcesTable.$converterkind.toSql(kind.value),
+      );
+    }
+    if (configJson.present) {
+      map['config_json'] = Variable<String>(configJson.value);
+    }
+    if (projectId.present) {
+      map['project_id'] = Variable<String>(projectId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SourcesCompanion(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('configJson: $configJson, ')
+          ..write('projectId: $projectId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MessagesTable extends Messages
+    with TableInfo<$MessagesTable, MessageRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MessagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
+    'sourceId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES sources (id)',
+    ),
+  );
+  static const VerificationMeta _externalIdMeta = const VerificationMeta(
+    'externalId',
+  );
+  @override
+  late final GeneratedColumn<String> externalId = GeneratedColumn<String>(
+    'external_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _authorMeta = const VerificationMeta('author');
+  @override
+  late final GeneratedColumn<String> author = GeneratedColumn<String>(
+    'author',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sentAtMeta = const VerificationMeta('sentAt');
+  @override
+  late final GeneratedColumn<DateTime> sentAt = GeneratedColumn<DateTime>(
+    'sent_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _rawJsonMeta = const VerificationMeta(
+    'rawJson',
+  );
+  @override
+  late final GeneratedColumn<String> rawJson = GeneratedColumn<String>(
+    'raw_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _routedProjectIdMeta = const VerificationMeta(
+    'routedProjectId',
+  );
+  @override
+  late final GeneratedColumn<String> routedProjectId = GeneratedColumn<String>(
+    'routed_project_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES projects (id)',
+    ),
+  );
+  static const VerificationMeta _routingConfidenceMeta = const VerificationMeta(
+    'routingConfidence',
+  );
+  @override
+  late final GeneratedColumn<double> routingConfidence =
+      GeneratedColumn<double>(
+        'routing_confidence',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _processedAtMeta = const VerificationMeta(
+    'processedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> processedAt = GeneratedColumn<DateTime>(
+    'processed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sourceId,
+    externalId,
+    author,
+    sentAt,
+    body,
+    rawJson,
+    routedProjectId,
+    routingConfidence,
+    processedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'messages';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MessageRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(
+        _sourceIdMeta,
+        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('external_id')) {
+      context.handle(
+        _externalIdMeta,
+        externalId.isAcceptableOrUnknown(data['external_id']!, _externalIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_externalIdMeta);
+    }
+    if (data.containsKey('author')) {
+      context.handle(
+        _authorMeta,
+        author.isAcceptableOrUnknown(data['author']!, _authorMeta),
+      );
+    }
+    if (data.containsKey('sent_at')) {
+      context.handle(
+        _sentAtMeta,
+        sentAt.isAcceptableOrUnknown(data['sent_at']!, _sentAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sentAtMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('raw_json')) {
+      context.handle(
+        _rawJsonMeta,
+        rawJson.isAcceptableOrUnknown(data['raw_json']!, _rawJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rawJsonMeta);
+    }
+    if (data.containsKey('routed_project_id')) {
+      context.handle(
+        _routedProjectIdMeta,
+        routedProjectId.isAcceptableOrUnknown(
+          data['routed_project_id']!,
+          _routedProjectIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('routing_confidence')) {
+      context.handle(
+        _routingConfidenceMeta,
+        routingConfidence.isAcceptableOrUnknown(
+          data['routing_confidence']!,
+          _routingConfidenceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('processed_at')) {
+      context.handle(
+        _processedAtMeta,
+        processedAt.isAcceptableOrUnknown(
+          data['processed_at']!,
+          _processedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MessageRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MessageRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      sourceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_id'],
+      )!,
+      externalId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}external_id'],
+      )!,
+      author: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author'],
+      ),
+      sentAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sent_at'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      rawJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}raw_json'],
+      )!,
+      routedProjectId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}routed_project_id'],
+      ),
+      routingConfidence: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}routing_confidence'],
+      ),
+      processedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}processed_at'],
+      ),
+    );
+  }
+
+  @override
+  $MessagesTable createAlias(String alias) {
+    return $MessagesTable(attachedDatabase, alias);
+  }
+}
+
+class MessageRow extends DataClass implements Insertable<MessageRow> {
+  final String id;
+  final String sourceId;
+  final String externalId;
+  final String? author;
+  final DateTime sentAt;
+  final String body;
+  final String rawJson;
+  final String? routedProjectId;
+  final double? routingConfidence;
+  final DateTime? processedAt;
+  const MessageRow({
+    required this.id,
+    required this.sourceId,
+    required this.externalId,
+    this.author,
+    required this.sentAt,
+    required this.body,
+    required this.rawJson,
+    this.routedProjectId,
+    this.routingConfidence,
+    this.processedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['source_id'] = Variable<String>(sourceId);
+    map['external_id'] = Variable<String>(externalId);
+    if (!nullToAbsent || author != null) {
+      map['author'] = Variable<String>(author);
+    }
+    map['sent_at'] = Variable<DateTime>(sentAt);
+    map['body'] = Variable<String>(body);
+    map['raw_json'] = Variable<String>(rawJson);
+    if (!nullToAbsent || routedProjectId != null) {
+      map['routed_project_id'] = Variable<String>(routedProjectId);
+    }
+    if (!nullToAbsent || routingConfidence != null) {
+      map['routing_confidence'] = Variable<double>(routingConfidence);
+    }
+    if (!nullToAbsent || processedAt != null) {
+      map['processed_at'] = Variable<DateTime>(processedAt);
+    }
+    return map;
+  }
+
+  MessagesCompanion toCompanion(bool nullToAbsent) {
+    return MessagesCompanion(
+      id: Value(id),
+      sourceId: Value(sourceId),
+      externalId: Value(externalId),
+      author: author == null && nullToAbsent
+          ? const Value.absent()
+          : Value(author),
+      sentAt: Value(sentAt),
+      body: Value(body),
+      rawJson: Value(rawJson),
+      routedProjectId: routedProjectId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(routedProjectId),
+      routingConfidence: routingConfidence == null && nullToAbsent
+          ? const Value.absent()
+          : Value(routingConfidence),
+      processedAt: processedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(processedAt),
+    );
+  }
+
+  factory MessageRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MessageRow(
+      id: serializer.fromJson<String>(json['id']),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
+      externalId: serializer.fromJson<String>(json['externalId']),
+      author: serializer.fromJson<String?>(json['author']),
+      sentAt: serializer.fromJson<DateTime>(json['sentAt']),
+      body: serializer.fromJson<String>(json['body']),
+      rawJson: serializer.fromJson<String>(json['rawJson']),
+      routedProjectId: serializer.fromJson<String?>(json['routedProjectId']),
+      routingConfidence: serializer.fromJson<double?>(
+        json['routingConfidence'],
+      ),
+      processedAt: serializer.fromJson<DateTime?>(json['processedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sourceId': serializer.toJson<String>(sourceId),
+      'externalId': serializer.toJson<String>(externalId),
+      'author': serializer.toJson<String?>(author),
+      'sentAt': serializer.toJson<DateTime>(sentAt),
+      'body': serializer.toJson<String>(body),
+      'rawJson': serializer.toJson<String>(rawJson),
+      'routedProjectId': serializer.toJson<String?>(routedProjectId),
+      'routingConfidence': serializer.toJson<double?>(routingConfidence),
+      'processedAt': serializer.toJson<DateTime?>(processedAt),
+    };
+  }
+
+  MessageRow copyWith({
+    String? id,
+    String? sourceId,
+    String? externalId,
+    Value<String?> author = const Value.absent(),
+    DateTime? sentAt,
+    String? body,
+    String? rawJson,
+    Value<String?> routedProjectId = const Value.absent(),
+    Value<double?> routingConfidence = const Value.absent(),
+    Value<DateTime?> processedAt = const Value.absent(),
+  }) => MessageRow(
+    id: id ?? this.id,
+    sourceId: sourceId ?? this.sourceId,
+    externalId: externalId ?? this.externalId,
+    author: author.present ? author.value : this.author,
+    sentAt: sentAt ?? this.sentAt,
+    body: body ?? this.body,
+    rawJson: rawJson ?? this.rawJson,
+    routedProjectId: routedProjectId.present
+        ? routedProjectId.value
+        : this.routedProjectId,
+    routingConfidence: routingConfidence.present
+        ? routingConfidence.value
+        : this.routingConfidence,
+    processedAt: processedAt.present ? processedAt.value : this.processedAt,
+  );
+  MessageRow copyWithCompanion(MessagesCompanion data) {
+    return MessageRow(
+      id: data.id.present ? data.id.value : this.id,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      externalId: data.externalId.present
+          ? data.externalId.value
+          : this.externalId,
+      author: data.author.present ? data.author.value : this.author,
+      sentAt: data.sentAt.present ? data.sentAt.value : this.sentAt,
+      body: data.body.present ? data.body.value : this.body,
+      rawJson: data.rawJson.present ? data.rawJson.value : this.rawJson,
+      routedProjectId: data.routedProjectId.present
+          ? data.routedProjectId.value
+          : this.routedProjectId,
+      routingConfidence: data.routingConfidence.present
+          ? data.routingConfidence.value
+          : this.routingConfidence,
+      processedAt: data.processedAt.present
+          ? data.processedAt.value
+          : this.processedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MessageRow(')
+          ..write('id: $id, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('externalId: $externalId, ')
+          ..write('author: $author, ')
+          ..write('sentAt: $sentAt, ')
+          ..write('body: $body, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('routedProjectId: $routedProjectId, ')
+          ..write('routingConfidence: $routingConfidence, ')
+          ..write('processedAt: $processedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sourceId,
+    externalId,
+    author,
+    sentAt,
+    body,
+    rawJson,
+    routedProjectId,
+    routingConfidence,
+    processedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MessageRow &&
+          other.id == this.id &&
+          other.sourceId == this.sourceId &&
+          other.externalId == this.externalId &&
+          other.author == this.author &&
+          other.sentAt == this.sentAt &&
+          other.body == this.body &&
+          other.rawJson == this.rawJson &&
+          other.routedProjectId == this.routedProjectId &&
+          other.routingConfidence == this.routingConfidence &&
+          other.processedAt == this.processedAt);
+}
+
+class MessagesCompanion extends UpdateCompanion<MessageRow> {
+  final Value<String> id;
+  final Value<String> sourceId;
+  final Value<String> externalId;
+  final Value<String?> author;
+  final Value<DateTime> sentAt;
+  final Value<String> body;
+  final Value<String> rawJson;
+  final Value<String?> routedProjectId;
+  final Value<double?> routingConfidence;
+  final Value<DateTime?> processedAt;
+  final Value<int> rowid;
+  const MessagesCompanion({
+    this.id = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.externalId = const Value.absent(),
+    this.author = const Value.absent(),
+    this.sentAt = const Value.absent(),
+    this.body = const Value.absent(),
+    this.rawJson = const Value.absent(),
+    this.routedProjectId = const Value.absent(),
+    this.routingConfidence = const Value.absent(),
+    this.processedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MessagesCompanion.insert({
+    required String id,
+    required String sourceId,
+    required String externalId,
+    this.author = const Value.absent(),
+    required DateTime sentAt,
+    required String body,
+    required String rawJson,
+    this.routedProjectId = const Value.absent(),
+    this.routingConfidence = const Value.absent(),
+    this.processedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       sourceId = Value(sourceId),
+       externalId = Value(externalId),
+       sentAt = Value(sentAt),
+       body = Value(body),
+       rawJson = Value(rawJson);
+  static Insertable<MessageRow> custom({
+    Expression<String>? id,
+    Expression<String>? sourceId,
+    Expression<String>? externalId,
+    Expression<String>? author,
+    Expression<DateTime>? sentAt,
+    Expression<String>? body,
+    Expression<String>? rawJson,
+    Expression<String>? routedProjectId,
+    Expression<double>? routingConfidence,
+    Expression<DateTime>? processedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sourceId != null) 'source_id': sourceId,
+      if (externalId != null) 'external_id': externalId,
+      if (author != null) 'author': author,
+      if (sentAt != null) 'sent_at': sentAt,
+      if (body != null) 'body': body,
+      if (rawJson != null) 'raw_json': rawJson,
+      if (routedProjectId != null) 'routed_project_id': routedProjectId,
+      if (routingConfidence != null) 'routing_confidence': routingConfidence,
+      if (processedAt != null) 'processed_at': processedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MessagesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? sourceId,
+    Value<String>? externalId,
+    Value<String?>? author,
+    Value<DateTime>? sentAt,
+    Value<String>? body,
+    Value<String>? rawJson,
+    Value<String?>? routedProjectId,
+    Value<double?>? routingConfidence,
+    Value<DateTime?>? processedAt,
+    Value<int>? rowid,
+  }) {
+    return MessagesCompanion(
+      id: id ?? this.id,
+      sourceId: sourceId ?? this.sourceId,
+      externalId: externalId ?? this.externalId,
+      author: author ?? this.author,
+      sentAt: sentAt ?? this.sentAt,
+      body: body ?? this.body,
+      rawJson: rawJson ?? this.rawJson,
+      routedProjectId: routedProjectId ?? this.routedProjectId,
+      routingConfidence: routingConfidence ?? this.routingConfidence,
+      processedAt: processedAt ?? this.processedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (externalId.present) {
+      map['external_id'] = Variable<String>(externalId.value);
+    }
+    if (author.present) {
+      map['author'] = Variable<String>(author.value);
+    }
+    if (sentAt.present) {
+      map['sent_at'] = Variable<DateTime>(sentAt.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (rawJson.present) {
+      map['raw_json'] = Variable<String>(rawJson.value);
+    }
+    if (routedProjectId.present) {
+      map['routed_project_id'] = Variable<String>(routedProjectId.value);
+    }
+    if (routingConfidence.present) {
+      map['routing_confidence'] = Variable<double>(routingConfidence.value);
+    }
+    if (processedAt.present) {
+      map['processed_at'] = Variable<DateTime>(processedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MessagesCompanion(')
+          ..write('id: $id, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('externalId: $externalId, ')
+          ..write('author: $author, ')
+          ..write('sentAt: $sentAt, ')
+          ..write('body: $body, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('routedProjectId: $routedProjectId, ')
+          ..write('routingConfidence: $routingConfidence, ')
+          ..write('processedAt: $processedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$OrgDatabase extends GeneratedDatabase {
   _$OrgDatabase(QueryExecutor e) : super(e);
   $OrgDatabaseManager get managers => $OrgDatabaseManager(this);
@@ -3027,6 +4033,8 @@ abstract class _$OrgDatabase extends GeneratedDatabase {
   late final $ArtifactsTable artifacts = $ArtifactsTable(this);
   late final $ConversationsTable conversations = $ConversationsTable(this);
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
+  late final $SourcesTable sources = $SourcesTable(this);
+  late final $MessagesTable messages = $MessagesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3039,6 +4047,8 @@ abstract class _$OrgDatabase extends GeneratedDatabase {
     artifacts,
     conversations,
     chatMessages,
+    sources,
+    messages,
   ];
   @override
   DriftDatabaseOptions get options =>
@@ -3126,6 +4136,42 @@ final class $$ProjectsTableReferences
     ).filter((f) => f.projectId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_conversationsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$SourcesTable, List<SourceRow>> _sourcesRefsTable(
+    _$OrgDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.sources,
+    aliasName: 'projects__id__sources__project_id',
+  );
+
+  $$SourcesTableProcessedTableManager get sourcesRefs {
+    final manager = $$SourcesTableTableManager(
+      $_db,
+      $_db.sources,
+    ).filter((f) => f.projectId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_sourcesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$MessagesTable, List<MessageRow>>
+  _messagesRefsTable(_$OrgDatabase db) => MultiTypedResultKey.fromTable(
+    db.messages,
+    aliasName: 'projects__id__messages__routed_project_id',
+  );
+
+  $$MessagesTableProcessedTableManager get messagesRefs {
+    final manager = $$MessagesTableTableManager($_db, $_db.messages).filter(
+      (f) => f.routedProjectId.id.sqlEquals($_itemColumn<String>('id')!),
+    );
+
+    final cache = $_typedResult.readTableOrNull(_messagesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3253,6 +4299,56 @@ class $$ProjectsTableFilterComposer
           }) => $$ConversationsTableFilterComposer(
             $db: $db,
             $table: $db.conversations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> sourcesRefs(
+    Expression<bool> Function($$SourcesTableFilterComposer f) f,
+  ) {
+    final $$SourcesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sources,
+      getReferencedColumn: (t) => t.projectId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourcesTableFilterComposer(
+            $db: $db,
+            $table: $db.sources,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> messagesRefs(
+    Expression<bool> Function($$MessagesTableFilterComposer f) f,
+  ) {
+    final $$MessagesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.messages,
+      getReferencedColumn: (t) => t.routedProjectId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MessagesTableFilterComposer(
+            $db: $db,
+            $table: $db.messages,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3434,6 +4530,56 @@ class $$ProjectsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> sourcesRefs<T extends Object>(
+    Expression<T> Function($$SourcesTableAnnotationComposer a) f,
+  ) {
+    final $$SourcesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sources,
+      getReferencedColumn: (t) => t.projectId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourcesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sources,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> messagesRefs<T extends Object>(
+    Expression<T> Function($$MessagesTableAnnotationComposer a) f,
+  ) {
+    final $$MessagesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.messages,
+      getReferencedColumn: (t) => t.routedProjectId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MessagesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.messages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ProjectsTableTableManager
@@ -3453,6 +4599,8 @@ class $$ProjectsTableTableManager
             bool tasksRefs,
             bool artifactsRefs,
             bool conversationsRefs,
+            bool sourcesRefs,
+            bool messagesRefs,
           })
         > {
   $$ProjectsTableTableManager(_$OrgDatabase db, $ProjectsTable table)
@@ -3527,6 +4675,8 @@ class $$ProjectsTableTableManager
                 tasksRefs = false,
                 artifactsRefs = false,
                 conversationsRefs = false,
+                sourcesRefs = false,
+                messagesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -3534,6 +4684,8 @@ class $$ProjectsTableTableManager
                     if (tasksRefs) db.tasks,
                     if (artifactsRefs) db.artifacts,
                     if (conversationsRefs) db.conversations,
+                    if (sourcesRefs) db.sources,
+                    if (messagesRefs) db.messages,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -3601,6 +4753,48 @@ class $$ProjectsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (sourcesRefs)
+                        await $_getPrefetchedData<
+                          ProjectRow,
+                          $ProjectsTable,
+                          SourceRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProjectsTableReferences
+                              ._sourcesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProjectsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).sourcesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.projectId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (messagesRefs)
+                        await $_getPrefetchedData<
+                          ProjectRow,
+                          $ProjectsTable,
+                          MessageRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProjectsTableReferences
+                              ._messagesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProjectsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).messagesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.routedProjectId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -3625,6 +4819,8 @@ typedef $$ProjectsTableProcessedTableManager =
         bool tasksRefs,
         bool artifactsRefs,
         bool conversationsRefs,
+        bool sourcesRefs,
+        bool messagesRefs,
       })
     >;
 typedef $$ProjectLinksTableCreateCompanionBuilder =
@@ -6088,6 +7284,914 @@ typedef $$ChatMessagesTableProcessedTableManager =
       ChatMessageRow,
       PrefetchHooks Function({bool conversationId})
     >;
+typedef $$SourcesTableCreateCompanionBuilder =
+    SourcesCompanion Function({
+      required String id,
+      required SourceKind kind,
+      required String configJson,
+      Value<String?> projectId,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$SourcesTableUpdateCompanionBuilder =
+    SourcesCompanion Function({
+      Value<String> id,
+      Value<SourceKind> kind,
+      Value<String> configJson,
+      Value<String?> projectId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$SourcesTableReferences
+    extends BaseReferences<_$OrgDatabase, $SourcesTable, SourceRow> {
+  $$SourcesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProjectsTable _projectIdTable(_$OrgDatabase db) =>
+      db.projects.createAlias('sources__project_id__projects__id');
+
+  $$ProjectsTableProcessedTableManager? get projectId {
+    final $_column = $_itemColumn<String>('project_id');
+    if ($_column == null) return null;
+    final manager = $$ProjectsTableTableManager(
+      $_db,
+      $_db.projects,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_projectIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$MessagesTable, List<MessageRow>>
+  _messagesRefsTable(_$OrgDatabase db) => MultiTypedResultKey.fromTable(
+    db.messages,
+    aliasName: 'sources__id__messages__source_id',
+  );
+
+  $$MessagesTableProcessedTableManager get messagesRefs {
+    final manager = $$MessagesTableTableManager(
+      $_db,
+      $_db.messages,
+    ).filter((f) => f.sourceId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_messagesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$SourcesTableFilterComposer
+    extends Composer<_$OrgDatabase, $SourcesTable> {
+  $$SourcesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<SourceKind, SourceKind, String> get kind =>
+      $composableBuilder(
+        column: $table.kind,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get configJson => $composableBuilder(
+    column: $table.configJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ProjectsTableFilterComposer get projectId {
+    final $$ProjectsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.projectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableFilterComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> messagesRefs(
+    Expression<bool> Function($$MessagesTableFilterComposer f) f,
+  ) {
+    final $$MessagesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.messages,
+      getReferencedColumn: (t) => t.sourceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MessagesTableFilterComposer(
+            $db: $db,
+            $table: $db.messages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SourcesTableOrderingComposer
+    extends Composer<_$OrgDatabase, $SourcesTable> {
+  $$SourcesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get configJson => $composableBuilder(
+    column: $table.configJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ProjectsTableOrderingComposer get projectId {
+    final $$ProjectsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.projectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableOrderingComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SourcesTableAnnotationComposer
+    extends Composer<_$OrgDatabase, $SourcesTable> {
+  $$SourcesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<SourceKind, String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get configJson => $composableBuilder(
+    column: $table.configJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$ProjectsTableAnnotationComposer get projectId {
+    final $$ProjectsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.projectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> messagesRefs<T extends Object>(
+    Expression<T> Function($$MessagesTableAnnotationComposer a) f,
+  ) {
+    final $$MessagesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.messages,
+      getReferencedColumn: (t) => t.sourceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MessagesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.messages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SourcesTableTableManager
+    extends
+        RootTableManager<
+          _$OrgDatabase,
+          $SourcesTable,
+          SourceRow,
+          $$SourcesTableFilterComposer,
+          $$SourcesTableOrderingComposer,
+          $$SourcesTableAnnotationComposer,
+          $$SourcesTableCreateCompanionBuilder,
+          $$SourcesTableUpdateCompanionBuilder,
+          (SourceRow, $$SourcesTableReferences),
+          SourceRow,
+          PrefetchHooks Function({bool projectId, bool messagesRefs})
+        > {
+  $$SourcesTableTableManager(_$OrgDatabase db, $SourcesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SourcesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SourcesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SourcesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<SourceKind> kind = const Value.absent(),
+                Value<String> configJson = const Value.absent(),
+                Value<String?> projectId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SourcesCompanion(
+                id: id,
+                kind: kind,
+                configJson: configJson,
+                projectId: projectId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required SourceKind kind,
+                required String configJson,
+                Value<String?> projectId = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SourcesCompanion.insert(
+                id: id,
+                kind: kind,
+                configJson: configJson,
+                projectId: projectId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SourcesTable, SourceRow>(table),
+                  $$SourcesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({projectId = false, messagesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (messagesRefs) db.messages],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (projectId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.projectId,
+                                referencedTable: $$SourcesTableReferences
+                                    ._projectIdTable(db),
+                                referencedColumn: $$SourcesTableReferences
+                                    ._projectIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (messagesRefs)
+                    await $_getPrefetchedData<
+                      SourceRow,
+                      $SourcesTable,
+                      MessageRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$SourcesTableReferences
+                          ._messagesRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$SourcesTableReferences(db, table, p0).messagesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.sourceId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$SourcesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$OrgDatabase,
+      $SourcesTable,
+      SourceRow,
+      $$SourcesTableFilterComposer,
+      $$SourcesTableOrderingComposer,
+      $$SourcesTableAnnotationComposer,
+      $$SourcesTableCreateCompanionBuilder,
+      $$SourcesTableUpdateCompanionBuilder,
+      (SourceRow, $$SourcesTableReferences),
+      SourceRow,
+      PrefetchHooks Function({bool projectId, bool messagesRefs})
+    >;
+typedef $$MessagesTableCreateCompanionBuilder =
+    MessagesCompanion Function({
+      required String id,
+      required String sourceId,
+      required String externalId,
+      Value<String?> author,
+      required DateTime sentAt,
+      required String body,
+      required String rawJson,
+      Value<String?> routedProjectId,
+      Value<double?> routingConfidence,
+      Value<DateTime?> processedAt,
+      Value<int> rowid,
+    });
+typedef $$MessagesTableUpdateCompanionBuilder =
+    MessagesCompanion Function({
+      Value<String> id,
+      Value<String> sourceId,
+      Value<String> externalId,
+      Value<String?> author,
+      Value<DateTime> sentAt,
+      Value<String> body,
+      Value<String> rawJson,
+      Value<String?> routedProjectId,
+      Value<double?> routingConfidence,
+      Value<DateTime?> processedAt,
+      Value<int> rowid,
+    });
+
+final class $$MessagesTableReferences
+    extends BaseReferences<_$OrgDatabase, $MessagesTable, MessageRow> {
+  $$MessagesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $SourcesTable _sourceIdTable(_$OrgDatabase db) =>
+      db.sources.createAlias('messages__source_id__sources__id');
+
+  $$SourcesTableProcessedTableManager get sourceId {
+    final $_column = $_itemColumn<String>('source_id')!;
+
+    final manager = $$SourcesTableTableManager(
+      $_db,
+      $_db.sources,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sourceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ProjectsTable _routedProjectIdTable(_$OrgDatabase db) =>
+      db.projects.createAlias('messages__routed_project_id__projects__id');
+
+  $$ProjectsTableProcessedTableManager? get routedProjectId {
+    final $_column = $_itemColumn<String>('routed_project_id');
+    if ($_column == null) return null;
+    final manager = $$ProjectsTableTableManager(
+      $_db,
+      $_db.projects,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_routedProjectIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MessagesTableFilterComposer
+    extends Composer<_$OrgDatabase, $MessagesTable> {
+  $$MessagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get externalId => $composableBuilder(
+    column: $table.externalId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get author => $composableBuilder(
+    column: $table.author,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get sentAt => $composableBuilder(
+    column: $table.sentAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rawJson => $composableBuilder(
+    column: $table.rawJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get routingConfidence => $composableBuilder(
+    column: $table.routingConfidence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get processedAt => $composableBuilder(
+    column: $table.processedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$SourcesTableFilterComposer get sourceId {
+    final $$SourcesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceId,
+      referencedTable: $db.sources,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourcesTableFilterComposer(
+            $db: $db,
+            $table: $db.sources,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ProjectsTableFilterComposer get routedProjectId {
+    final $$ProjectsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.routedProjectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableFilterComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MessagesTableOrderingComposer
+    extends Composer<_$OrgDatabase, $MessagesTable> {
+  $$MessagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get externalId => $composableBuilder(
+    column: $table.externalId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get author => $composableBuilder(
+    column: $table.author,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get sentAt => $composableBuilder(
+    column: $table.sentAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rawJson => $composableBuilder(
+    column: $table.rawJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get routingConfidence => $composableBuilder(
+    column: $table.routingConfidence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get processedAt => $composableBuilder(
+    column: $table.processedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$SourcesTableOrderingComposer get sourceId {
+    final $$SourcesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceId,
+      referencedTable: $db.sources,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourcesTableOrderingComposer(
+            $db: $db,
+            $table: $db.sources,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ProjectsTableOrderingComposer get routedProjectId {
+    final $$ProjectsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.routedProjectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableOrderingComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MessagesTableAnnotationComposer
+    extends Composer<_$OrgDatabase, $MessagesTable> {
+  $$MessagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get externalId => $composableBuilder(
+    column: $table.externalId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get author =>
+      $composableBuilder(column: $table.author, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get sentAt =>
+      $composableBuilder(column: $table.sentAt, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get rawJson =>
+      $composableBuilder(column: $table.rawJson, builder: (column) => column);
+
+  GeneratedColumn<double> get routingConfidence => $composableBuilder(
+    column: $table.routingConfidence,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get processedAt => $composableBuilder(
+    column: $table.processedAt,
+    builder: (column) => column,
+  );
+
+  $$SourcesTableAnnotationComposer get sourceId {
+    final $$SourcesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceId,
+      referencedTable: $db.sources,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourcesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sources,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ProjectsTableAnnotationComposer get routedProjectId {
+    final $$ProjectsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.routedProjectId,
+      referencedTable: $db.projects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProjectsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.projects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MessagesTableTableManager
+    extends
+        RootTableManager<
+          _$OrgDatabase,
+          $MessagesTable,
+          MessageRow,
+          $$MessagesTableFilterComposer,
+          $$MessagesTableOrderingComposer,
+          $$MessagesTableAnnotationComposer,
+          $$MessagesTableCreateCompanionBuilder,
+          $$MessagesTableUpdateCompanionBuilder,
+          (MessageRow, $$MessagesTableReferences),
+          MessageRow,
+          PrefetchHooks Function({bool sourceId, bool routedProjectId})
+        > {
+  $$MessagesTableTableManager(_$OrgDatabase db, $MessagesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MessagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MessagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MessagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> sourceId = const Value.absent(),
+                Value<String> externalId = const Value.absent(),
+                Value<String?> author = const Value.absent(),
+                Value<DateTime> sentAt = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<String> rawJson = const Value.absent(),
+                Value<String?> routedProjectId = const Value.absent(),
+                Value<double?> routingConfidence = const Value.absent(),
+                Value<DateTime?> processedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MessagesCompanion(
+                id: id,
+                sourceId: sourceId,
+                externalId: externalId,
+                author: author,
+                sentAt: sentAt,
+                body: body,
+                rawJson: rawJson,
+                routedProjectId: routedProjectId,
+                routingConfidence: routingConfidence,
+                processedAt: processedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String sourceId,
+                required String externalId,
+                Value<String?> author = const Value.absent(),
+                required DateTime sentAt,
+                required String body,
+                required String rawJson,
+                Value<String?> routedProjectId = const Value.absent(),
+                Value<double?> routingConfidence = const Value.absent(),
+                Value<DateTime?> processedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MessagesCompanion.insert(
+                id: id,
+                sourceId: sourceId,
+                externalId: externalId,
+                author: author,
+                sentAt: sentAt,
+                body: body,
+                rawJson: rawJson,
+                routedProjectId: routedProjectId,
+                routingConfidence: routingConfidence,
+                processedAt: processedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$MessagesTable, MessageRow>(table),
+                  $$MessagesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sourceId = false, routedProjectId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sourceId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.sourceId,
+                                referencedTable: $$MessagesTableReferences
+                                    ._sourceIdTable(db),
+                                referencedColumn: $$MessagesTableReferences
+                                    ._sourceIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (routedProjectId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.routedProjectId,
+                                referencedTable: $$MessagesTableReferences
+                                    ._routedProjectIdTable(db),
+                                referencedColumn: $$MessagesTableReferences
+                                    ._routedProjectIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MessagesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$OrgDatabase,
+      $MessagesTable,
+      MessageRow,
+      $$MessagesTableFilterComposer,
+      $$MessagesTableOrderingComposer,
+      $$MessagesTableAnnotationComposer,
+      $$MessagesTableCreateCompanionBuilder,
+      $$MessagesTableUpdateCompanionBuilder,
+      (MessageRow, $$MessagesTableReferences),
+      MessageRow,
+      PrefetchHooks Function({bool sourceId, bool routedProjectId})
+    >;
 
 class $OrgDatabaseManager {
   final _$OrgDatabase _db;
@@ -6106,4 +8210,8 @@ class $OrgDatabaseManager {
       $$ConversationsTableTableManager(_db, _db.conversations);
   $$ChatMessagesTableTableManager get chatMessages =>
       $$ChatMessagesTableTableManager(_db, _db.chatMessages);
+  $$SourcesTableTableManager get sources =>
+      $$SourcesTableTableManager(_db, _db.sources);
+  $$MessagesTableTableManager get messages =>
+      $$MessagesTableTableManager(_db, _db.messages);
 }

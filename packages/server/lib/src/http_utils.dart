@@ -5,6 +5,7 @@ import 'package:shelf/shelf.dart';
 import 'repositories/org_store.dart';
 import 'repositories/registry_store.dart';
 import 'services/git_service.dart';
+import 'services/markitdown_service.dart';
 import 'services/onboarding_service.dart';
 
 const jsonHeaders = {'content-type': 'application/json'};
@@ -45,6 +46,10 @@ Future<Response> guarded(Future<Response> Function() action) async {
     return notFoundResponse('Task ${e.id} not found');
   } on ConversationNotFound catch (e) {
     return notFoundResponse('Conversation ${e.id} not found');
+  } on SourceNotFound catch (e) {
+    return notFoundResponse('Source ${e.id} not found');
+  } on MarkItDownException catch (e) {
+    return upstreamErrorResponse(e.message);
   } on CrossOrgLinkRejected catch (e) {
     return notFoundResponse('Project ${e.toProjectId} not found');
   } on DuplicateOrgSlug catch (e) {

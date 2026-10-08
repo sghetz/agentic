@@ -30,6 +30,14 @@ class ConversationNotFound implements Exception {
   String toString() => 'ConversationNotFound($id)';
 }
 
+class SourceNotFound implements Exception {
+  SourceNotFound(this.id);
+  final String id;
+
+  @override
+  String toString() => 'SourceNotFound($id)';
+}
+
 class DuplicateProjectSlug implements Exception {
   DuplicateProjectSlug(this.slug);
   final String slug;
@@ -655,6 +663,128 @@ class OrgStore {
     return rows.map(_chatMessageToModel).toList();
   }
 
+  // ---- Sources ----
+
+  Future<core.Source> createSource(core.CreateSourceRequest request) async {
+    if (request.projectId != null &&
+        await getProject(request.projectId!) == null) {
+      throw ProjectNotFound(request.projectId!);
+    }
+
+    final id = core.newId();
+    final now = DateTime.now().toUtc();
+    await _db
+        .into(_db.sources)
+        .insert(
+          SourcesCompanion.insert(
+            id: id,
+            kind: request.kind,
+            configJson: jsonEncode(request.config),
+            projectId: Value(request.projectId),
+            createdAt: now,
+          ),
+        );
+    return core.Source(
+      id: id,
+      kind: request.kind,
+      config: request.config,
+      projectId: request.projectId,
+      createdAt: now,
+    );
+  }
+
+  Future<core.Source?> getSource(String id) async {
+    final row = await (_db.select(
+      _db.sources,
+    )..where((s) => s.id.equals(id))).getSingleOrNull();
+    return row == null ? null : _sourceToModel(row);
+  }
+
+  Future<List<core.Source>> listSources({String? projectId}) async {
+    final select = _db.select(_db.sources);
+    if (projectId != null) {
+      select.where((s) => s.projectId.equals(projectId));
+    }
+    final rows = await select.get();
+    return rows.map(_sourceToModel).toList();
+  }
+
+  // ---- Messages ----
+
+  /// Returns the existing message if (sourceId, externalId) was already
+  /// imported -- idempotent across repeat scans of the same source (e.g. an
+  /// ERF folder re-scan), so callers can always get-or-create without
+  /// tracking what they've already seen themselves. Whether a message still
+  /// needs processing is `message.processedAt == null`, not "was this call
+  /// the one that created it" -- that way a scan also retries any message
+  /// whose extraction failed on a previous run.
+  Future<core.Message> getOrCreateMessage({
+    required String sourceId,
+    required String externalId,
+    String? author,
+    required DateTime sentAt,
+    required String body,
+    required Map<String, Object?> raw,
+    String? routedProjectId,
+    double? routingConfidence,
+  }) async {
+    if (await getSource(sourceId) == null) throw SourceNotFound(sourceId);
+
+    return _db.transaction(() async {
+      final existing =
+          await (_db.select(_db.messages)..where(
+                (m) =>
+                    m.sourceId.equals(sourceId) &
+                    m.externalId.equals(externalId),
+              ))
+              .getSingleOrNull();
+      if (existing != null) return _messageToModel(existing);
+
+      final id = core.newId();
+      await _db
+          .into(_db.messages)
+          .insert(
+            MessagesCompanion.insert(
+              id: id,
+              sourceId: sourceId,
+              externalId: externalId,
+              author: Value(author),
+              sentAt: sentAt,
+              body: body,
+              rawJson: jsonEncode(raw),
+              routedProjectId: Value(routedProjectId),
+              routingConfidence: Value(routingConfidence),
+            ),
+          );
+      return core.Message(
+        id: id,
+        sourceId: sourceId,
+        externalId: externalId,
+        author: author,
+        sentAt: sentAt,
+        body: body,
+        raw: raw,
+        routedProjectId: routedProjectId,
+        routingConfidence: routingConfidence,
+      );
+    });
+  }
+
+  Future<void> markMessageProcessed(String messageId) async {
+    await (_db.update(_db.messages)..where((m) => m.id.equals(messageId)))
+        .write(MessagesCompanion(processedAt: Value(DateTime.now().toUtc())));
+  }
+
+  Future<List<core.Message>> listMessages({String? sourceId}) async {
+    final select = _db.select(_db.messages)
+      ..orderBy([(m) => OrderingTerm.asc(m.sentAt)]);
+    if (sourceId != null) {
+      select.where((m) => m.sourceId.equals(sourceId));
+    }
+    final rows = await select.get();
+    return rows.map(_messageToModel).toList();
+  }
+
   // ---- row <-> core model mapping ----
 
   core.Project _projectToModel(ProjectRow row) => core.Project(
@@ -722,5 +852,26 @@ class OrgStore {
     ts: row.ts,
     sender: core.Actor.parse(row.sender),
     content: row.content,
+  );
+
+  core.Source _sourceToModel(SourceRow row) => core.Source(
+    id: row.id,
+    kind: row.kind,
+    config: jsonDecode(row.configJson) as Map<String, Object?>,
+    projectId: row.projectId,
+    createdAt: row.createdAt,
+  );
+
+  core.Message _messageToModel(MessageRow row) => core.Message(
+    id: row.id,
+    sourceId: row.sourceId,
+    externalId: row.externalId,
+    author: row.author,
+    sentAt: row.sentAt,
+    body: row.body,
+    raw: jsonDecode(row.rawJson) as Map<String, Object?>,
+    routedProjectId: row.routedProjectId,
+    routingConfidence: row.routingConfidence,
+    processedAt: row.processedAt,
   );
 }

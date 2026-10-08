@@ -120,6 +120,69 @@ void main() {
       expect(TaskSpec.fromJson(spec.toJson()), spec);
     });
 
+    test('TaskSpec with a sourceMessageId', () {
+      const spec = TaskSpec(
+        projectId: 'proj-1',
+        goal: 'x',
+        priority: TaskSpecPriority.low,
+        sourceMessageId: 'msg-1',
+      );
+      expect(TaskSpec.fromJson(spec.toJson()), spec);
+    });
+
+    test('Source project-scoped (ERF)', () {
+      final source = Source(
+        id: 'source-1',
+        kind: SourceKind.erf,
+        config: const {'folderPath': '~/Documents/ERF/banking-app'},
+        projectId: 'proj-1',
+        createdAt: DateTime.utc(2026, 1, 1),
+      );
+      expect(Source.fromJson(source.toJson()), source);
+    });
+
+    test('Source org-scoped (needs routing)', () {
+      final source = Source(
+        id: 'source-2',
+        kind: SourceKind.whatsappImport,
+        config: const {},
+        createdAt: DateTime.utc(2026, 1, 1),
+      );
+      expect(Source.fromJson(source.toJson()), source);
+      expect(Source.fromJson(source.toJson()).projectId, isNull);
+    });
+
+    test('Message, routed with confidence', () {
+      final message = Message(
+        id: 'msg-1',
+        sourceId: 'source-1',
+        externalId: '/Documents/ERF/banking-app/RF-07.docx',
+        author: null,
+        sentAt: DateTime.utc(2026, 1, 1),
+        body: '# Password reset',
+        raw: const {'filePath': '/Documents/ERF/banking-app/RF-07.docx'},
+        routedProjectId: 'proj-1',
+        routingConfidence: 0.92,
+        processedAt: DateTime.utc(2026, 1, 1, 0, 1),
+      );
+      expect(Message.fromJson(message.toJson()), message);
+    });
+
+    test('Message, unrouted', () {
+      final message = Message(
+        id: 'msg-2',
+        sourceId: 'source-2',
+        externalId: 'ext-2',
+        sentAt: DateTime.utc(2026, 1, 1),
+        body: 'hey can someone look at the export bug',
+        raw: const {},
+      );
+      final roundTripped = Message.fromJson(message.toJson());
+      expect(roundTripped, message);
+      expect(roundTripped.routedProjectId, isNull);
+      expect(roundTripped.processedAt, isNull);
+    });
+
     test('Artifact', () {
       final artifact = Artifact(
         id: 'artifact-1',

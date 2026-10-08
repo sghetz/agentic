@@ -88,4 +88,45 @@ void registerSourceRoutes(Router router, AppContext ctx) {
       }
     });
   });
+
+  router.post('/orgs/<orgId>/sources/<sourceId>/import-whatsapp', (
+    Request request,
+    String orgId,
+    String sourceId,
+  ) {
+    return guarded(() async {
+      final store = await ctx.orgStore(orgId);
+      if (store == null) {
+        return notFoundResponse('Organization $orgId not found');
+      }
+      final source = await store.getSource(sourceId);
+      if (source == null) {
+        return notFoundResponse('Source $sourceId not found');
+      }
+      if (source.kind != core.SourceKind.whatsappImport) {
+        return badRequestResponse(
+          'Only whatsappImport sources support this (got ${source.kind.name})',
+        );
+      }
+
+      final body = await readJsonBody(request);
+      final exportText = body['exportText'] as String?;
+      if (exportText == null || exportText.trim().isEmpty) {
+        return badRequestResponse('exportText is required');
+      }
+
+      final result = await ctx.whatsAppImportService.import(
+        source: source,
+        exportText: exportText,
+        store: store,
+      );
+      return jsonResponse({
+        'newMessages': result.newMessages,
+        'routedMessages': result.routedMessages,
+        'unroutedMessages': result.unroutedMessages,
+        'specsCreated': result.specsCreated,
+        'failedMessageIds': result.failedMessageIds,
+      });
+    });
+  });
 }

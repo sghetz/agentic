@@ -50,6 +50,15 @@ Health's diagnosis already proved in Phase 1.
   a real ERF document often contains several distinct requirements that arguably deserve separate
   specs. Splitting a single document into multiple specs is a reasonable later refinement, not
   needed to meet this phase's "Done when" bar.
+- **WhatsApp export parsing assumes DD/MM/YY dates** (the more common international convention) --
+  the export text itself doesn't carry the phone's locale, so a MM/DD/YY export will parse with
+  day and month swapped. Supports the two common export formats (iOS bracket style, Android dash
+  style); a timestamped line with no `author: body` split (WhatsApp's own system notices) is
+  skipped rather than merged into a neighboring message. Known limitations, not blockers.
+- **Each message is routed and imported sequentially, one real CLI call at a time** (routing, then
+  extraction if routed) -- a 3-message import took about 30 seconds live. Fine for a manual,
+  on-demand import of a reasonably-sized export; a much larger paste would be slow but not
+  incorrect. Not parallelized in this first cut.
 
 ## Build order
 
@@ -74,6 +83,6 @@ copying.
 
 - [x] 1. TaskSpec model + AnalystExtractionService + manual-trigger route
 - [x] 2. sources/messages data model + ERF import
-- [ ] 3. WhatsApp manual import + message routing with confidence
+- [x] 3. WhatsApp manual import + message routing with confidence
 - [ ] 4. Inbox + Task Spec review UI
 - [ ] 5. Morning briefing (dashboard extension)

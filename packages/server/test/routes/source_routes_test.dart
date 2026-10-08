@@ -181,4 +181,90 @@ void main() {
     );
     expect(status, 404);
   });
+
+  test('importing WhatsApp text into a non-whatsapp source is a 400', () async {
+    final (_, sourceBody) = await send(
+      handler,
+      'POST',
+      '/orgs/$orgId/sources',
+      json: {
+        'kind': 'erf',
+        'config': {'folderPath': '/tmp/erf'},
+        'projectId': projectId,
+      },
+    );
+    final sourceId = (sourceBody! as Map)['id'] as String;
+
+    final (status, _) = await send(
+      handler,
+      'POST',
+      '/orgs/$orgId/sources/$sourceId/import-whatsapp',
+      json: {'exportText': '[1/3/26, 09:15:00] Alice: hi'},
+    );
+    expect(status, 400);
+  });
+
+  test('exportText is required', () async {
+    final (_, sourceBody) = await send(
+      handler,
+      'POST',
+      '/orgs/$orgId/sources',
+      json: {'kind': 'whatsappImport', 'projectId': projectId},
+    );
+    final sourceId = (sourceBody! as Map)['id'] as String;
+
+    final (status, _) = await send(
+      handler,
+      'POST',
+      '/orgs/$orgId/sources/$sourceId/import-whatsapp',
+      json: const {},
+    );
+    expect(status, 400);
+  });
+
+  test(
+    'POST .../import-whatsapp on a project-scoped source imports and drafts specs',
+    () async {
+      final importCtx = buildTestContext(
+        analystExtractionService: AnalystExtractionService(
+          invoker: (_) async => jsonEncode(_structuredOutput),
+        ),
+      );
+      final importHandler = buildHandler(importCtx);
+      final org = await createOrg(importHandler, slug: 'whatsapp-import-org');
+      final proj = await createProject(importHandler, org);
+
+      final (_, sourceBody) = await send(
+        importHandler,
+        'POST',
+        '/orgs/$org/sources',
+        json: {'kind': 'whatsappImport', 'projectId': proj},
+      );
+      final sourceId = (sourceBody! as Map)['id'] as String;
+
+      final (status, body) = await send(
+        importHandler,
+        'POST',
+        '/orgs/$org/sources/$sourceId/import-whatsapp',
+        json: {
+          'exportText':
+              '[1/3/26, 09:15:00] Alice: can someone look at the export bug?',
+        },
+      );
+
+      expect(status, 200);
+      final map = body! as Map;
+      expect(map['newMessages'], 1);
+      expect(map['routedMessages'], 1);
+      expect(map['unroutedMessages'], 0);
+      expect(map['specsCreated'], 1);
+
+      final (_, specsBody) = await send(
+        importHandler,
+        'GET',
+        '/orgs/$org/projects/$proj/task-specs',
+      );
+      expect((specsBody! as List), hasLength(1));
+    },
+  );
 }

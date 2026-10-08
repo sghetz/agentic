@@ -10,8 +10,10 @@ import 'services/flutter_version_detector.dart';
 import 'services/git_service.dart';
 import 'services/health_check_service.dart';
 import 'services/health_runner.dart';
+import 'services/message_routing_service.dart';
 import 'services/onboarding_service.dart';
 import 'services/trivial_fix_service.dart';
+import 'services/whatsapp_import_service.dart';
 import 'storage/org_database.dart';
 import 'storage/registry_database.dart';
 
@@ -29,13 +31,21 @@ class AppContext {
     required this.paths,
     this.conversationService = const ClaudeConversationService(),
     this.analystExtractionService = const AnalystExtractionService(),
+    this.routingService = const MessageRoutingService(),
     ErfImportService? erfImportService,
+    WhatsAppImportService? whatsAppImportService,
     ChatStreamHub? chatStreamHub,
   }) : _openOrgDatabase = openOrgDatabase,
        chatStreamHub = chatStreamHub ?? ChatStreamHub(),
        erfImportService =
            erfImportService ??
-           ErfImportService(extractionService: analystExtractionService);
+           ErfImportService(extractionService: analystExtractionService),
+       whatsAppImportService =
+           whatsAppImportService ??
+           WhatsAppImportService(
+             routingService: routingService,
+             extractionService: analystExtractionService,
+           );
 
   factory AppContext.standard(AgenticPaths paths) {
     const gitService = GitService();
@@ -71,7 +81,9 @@ class AppContext {
   final TrivialFixService trivialFixService;
   final ClaudeConversationService conversationService;
   final AnalystExtractionService analystExtractionService;
+  final MessageRoutingService routingService;
   final ErfImportService erfImportService;
+  final WhatsAppImportService whatsAppImportService;
   final ChatStreamHub chatStreamHub;
   final AgenticPaths paths;
   final OrgDatabase Function(String orgId) _openOrgDatabase;

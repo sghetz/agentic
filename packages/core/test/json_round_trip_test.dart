@@ -363,6 +363,63 @@ void main() {
       );
       expect(DashboardSummary.fromJson(summary.toJson()), summary);
     });
+
+    test('PullRequestInfo', () {
+      const pr = PullRequestInfo(
+        number: 42,
+        url: 'https://github.com/org/repo/pull/42',
+        branch: 'agentic/task-task-1',
+        baseBranch: 'main',
+      );
+      expect(PullRequestInfo.fromJson(pr.toJson()), pr);
+    });
+
+    test('PullRequestCheck for each conclusion', () {
+      for (final conclusion in PrCheckConclusion.values) {
+        final check = PullRequestCheck(
+          name: 'ci/build',
+          conclusion: conclusion,
+          detailsUrl: 'https://ci.example.com/run/1',
+        );
+        expect(
+          PullRequestCheck.fromJson(check.toJson()),
+          check,
+          reason: 'failed for PrCheckConclusion.$conclusion',
+        );
+      }
+    });
+
+    test('PullRequestCheck without a detailsUrl', () {
+      const check = PullRequestCheck(
+        name: 'codacy',
+        conclusion: PrCheckConclusion.pending,
+      );
+      final roundTripped = PullRequestCheck.fromJson(check.toJson());
+      expect(roundTripped, check);
+      expect(roundTripped.detailsUrl, isNull);
+    });
+
+    test('ReviewReport', () {
+      const report = ReviewReport(
+        summary: 'Covers the happy path; missing an error-state test.',
+        acceptanceCriteriaMet: ['Reset link expires after 1 hour'],
+        acceptanceCriteriaUnmet: ['Link is single-use'],
+        requirementIdsCovered: ['RF-07'],
+        requirementIdsMissing: ['RF-08'],
+        codeQualityIssues: ['AuthService.reset duplicates token-hash logic'],
+        missingTests: ['No test for an expired-link request'],
+      );
+      expect(ReviewReport.fromJson(report.toJson()), report);
+    });
+
+    test('ReviewReport defaults every list to empty', () {
+      const report = ReviewReport(summary: 'Looks good.');
+      final roundTripped = ReviewReport.fromJson(report.toJson());
+      expect(roundTripped, report);
+      expect(roundTripped.acceptanceCriteriaMet, isEmpty);
+      expect(roundTripped.requirementIdsMissing, isEmpty);
+      expect(roundTripped.missingTests, isEmpty);
+    });
   });
 
   group('Actor', () {

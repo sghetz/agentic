@@ -60,6 +60,6 @@ end -- i.e. the full chain from Phase 3's ERF import through to a rendered diagr
 
 (Update after each approved slice.)
 
-- [ ] 1. DesignSpec model + CreativeExtractionService + generate/list routes
+- [x] 1. DesignSpec model + CreativeExtractionService + generate/list routes
 - [ ] 2. MermaidView widget (webview_flutter + vendored mermaid.js)
 - [ ] 3. Design Spec + diagram review UI, wired end to end

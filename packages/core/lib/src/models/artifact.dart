@@ -6,11 +6,12 @@ part 'artifact.freezed.dart';
 part 'artifact.g.dart';
 
 /// Exactly one of [taskId] / [projectId] is set, depending on [kind]:
-/// task-scoped kinds (taskSpec, designSpec, pr, review, most diagrams)
-/// use [taskId]; project-scoped kinds (healthReport) use [projectId].
-/// [uri] points at an external reference (a PR link, a file); [content]
-/// holds inline text for artifacts stored directly (a Health Report as
-/// JSON, a Mermaid diagram) -- not every artifact needs both.
+/// project-scoped kinds (healthReport, taskSpec, designSpec, diagram -- a
+/// draft has no [Task] yet, only once a human decides to act on it) use
+/// [projectId]; task-scoped kinds (pr, review) use [taskId]. [uri] points
+/// at an external reference (a PR link, a file); [content] holds inline
+/// text for artifacts stored directly (a Health Report as JSON, a Task
+/// Spec as JSON, raw Mermaid source) -- not every artifact needs both.
 @freezed
 sealed class Artifact with _$Artifact {
   const factory Artifact({

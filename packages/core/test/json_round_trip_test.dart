@@ -130,6 +130,44 @@ void main() {
       expect(TaskSpec.fromJson(spec.toJson()), spec);
     });
 
+    test('DesignSpec with screens and navigation', () {
+      const spec = DesignSpec(
+        projectId: 'proj-1',
+        screens: [
+          ScreenSpec(
+            name: 'Login',
+            purpose: 'Let the user sign in',
+            states: [ScreenUiState.loading, ScreenUiState.error],
+            navigatesTo: ['Home'],
+          ),
+          ScreenSpec(
+            name: 'Home',
+            purpose: 'Show the main dashboard',
+            states: [
+              ScreenUiState.empty,
+              ScreenUiState.loading,
+              ScreenUiState.error,
+              ScreenUiState.success,
+            ],
+          ),
+        ],
+        requirementIds: ['RF-07'],
+        sourceTaskSpecArtifactId: 'artifact-1',
+      );
+      expect(DesignSpec.fromJson(spec.toJson()), spec);
+    });
+
+    test('ScreenSpec defaults states and navigatesTo to empty', () {
+      const screen = ScreenSpec(
+        name: 'Settings',
+        purpose: 'Manage preferences',
+      );
+      final roundTripped = ScreenSpec.fromJson(screen.toJson());
+      expect(roundTripped, screen);
+      expect(roundTripped.states, isEmpty);
+      expect(roundTripped.navigatesTo, isEmpty);
+    });
+
     test('Source project-scoped (ERF)', () {
       final source = Source(
         id: 'source-1',

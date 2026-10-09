@@ -6,6 +6,7 @@ import 'package:server/src/config.dart';
 import 'package:server/src/repositories/registry_store.dart';
 import 'package:server/src/services/analyst_extraction_service.dart';
 import 'package:server/src/services/claude_conversation_service.dart';
+import 'package:server/src/services/creative_extraction_service.dart';
 import 'package:server/src/services/failure_diagnosis_service.dart';
 import 'package:server/src/services/flutter_version_detector.dart';
 import 'package:server/src/services/git_service.dart';
@@ -23,6 +24,7 @@ AppContext buildTestContext({
   ClaudeConversationService? conversationService,
   AnalystExtractionService? analystExtractionService,
   MessageRoutingService? routingService,
+  CreativeExtractionService? creativeExtractionService,
 }) {
   final tempDir = Directory.systemTemp.createTempSync('agentic_test_');
   final paths = AgenticPaths('${tempDir.path}/data', '${tempDir.path}/repos');
@@ -74,6 +76,11 @@ AppContext buildTestContext({
     // routing content pass their own `routingService`.
     routingService:
         routingService ?? MessageRoutingService(invoker: (_) async => '{}'),
+    // Never calls the real `claude` CLI in tests. Tests that care about
+    // generation content pass their own `creativeExtractionService`.
+    creativeExtractionService:
+        creativeExtractionService ??
+        CreativeExtractionService(invoker: (_) async => '{}'),
   );
 }
 

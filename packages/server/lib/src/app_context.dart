@@ -4,6 +4,7 @@ import 'repositories/registry_store.dart';
 import 'services/analyst_extraction_service.dart';
 import 'services/chat_stream_hub.dart';
 import 'services/claude_conversation_service.dart';
+import 'services/creative_extraction_service.dart';
 import 'services/erf_import_service.dart';
 import 'services/failure_diagnosis_service.dart';
 import 'services/flutter_version_detector.dart';
@@ -32,6 +33,7 @@ class AppContext {
     this.conversationService = const ClaudeConversationService(),
     this.analystExtractionService = const AnalystExtractionService(),
     this.routingService = const MessageRoutingService(),
+    this.creativeExtractionService = const CreativeExtractionService(),
     ErfImportService? erfImportService,
     WhatsAppImportService? whatsAppImportService,
     ChatStreamHub? chatStreamHub,
@@ -82,6 +84,7 @@ class AppContext {
   final ClaudeConversationService conversationService;
   final AnalystExtractionService analystExtractionService;
   final MessageRoutingService routingService;
+  final CreativeExtractionService creativeExtractionService;
   final ErfImportService erfImportService;
   final WhatsAppImportService whatsAppImportService;
   final ChatStreamHub chatStreamHub;

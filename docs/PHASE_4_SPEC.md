@@ -41,6 +41,21 @@ user/screen flow diagram with requirement IDs on nodes, rendered in the app.
   purpose, a fixed set of UI states (`empty`/`loading`/`error`/`success` -- the four AGENTS.md
   names explicitly), and the names of screens it navigates to. Requirement IDs are carried over
   from the source Task Spec for traceability, not re-derived.
+- **`mermaid.js` is vendored via npm, not hand-copied from a CDN.** `npm pack mermaid@12.1.0` and
+  extracting `dist/mermaid.min.js` (the global/IIFE browser build, not the ESM build) gives an
+  authoritative, verifiable copy with an exact version pin and its MIT license recorded alongside
+  it (`assets/mermaid/LICENSE.mermaid.txt`).
+- **The whole Mermaid page is one inlined HTML string, not `loadFlutterAsset` referencing a
+  sibling JS file.** Relative asset paths inside an HTML page loaded via `webview_flutter` are
+  unreliable across its platform implementations (iOS/Android/macOS each handle this differently);
+  inlining the vendored JS directly into the HTML string passed to `loadHtmlString` sidesteps that
+  entirely, at the cost of composing a ~5MB string per render.
+- **`WebViewController.setBackgroundColor(Colors.transparent)` is never used -- confirmed live.**
+  It throws `UnimplementedError: opaque is not implemented on macOS`: macOS's platform-view
+  embedding doesn't support the hit-test-opaque semantics a translucent platform view needs. The
+  page supplies its own explicit light/dark background color instead (matching
+  `Theme.of(context).brightness`), with a regression test guarding against reintroducing
+  `"transparent"` anywhere in the composed HTML.
 
 ## Build order
 
@@ -61,5 +76,5 @@ end -- i.e. the full chain from Phase 3's ERF import through to a rendered diagr
 (Update after each approved slice.)
 
 - [x] 1. DesignSpec model + CreativeExtractionService + generate/list routes
-- [ ] 2. MermaidView widget (webview_flutter + vendored mermaid.js)
+- [x] 2. MermaidView widget (webview_flutter + vendored mermaid.js)
 - [ ] 3. Design Spec + diagram review UI, wired end to end

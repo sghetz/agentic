@@ -11,6 +11,7 @@ import '../../state/project_providers.dart';
 import '../common/empty_state.dart';
 import '../common/error_state.dart';
 import '../common/loading_state.dart';
+import '../design/design_spec_dialog.dart';
 import '../health/health_report_dialog.dart';
 import '../inbox/task_spec_dialog.dart';
 import 'health_indicator.dart';
@@ -116,6 +117,13 @@ class ProjectList extends ConsumerWidget {
                             );
                           case 'import-erf':
                             await _importErf(context, ref, orgId, project);
+                          case 'design-specs':
+                            await showDesignSpecDialog(
+                              context,
+                              orgId: orgId,
+                              projectId: project.id,
+                              projectName: project.name,
+                            );
                           case 'archive':
                             await ref
                                 .read(apiClientProvider)
@@ -142,6 +150,10 @@ class ProjectList extends ConsumerWidget {
                         const PopupMenuItem(
                           value: 'import-erf',
                           child: Text('Import ERF folder...'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'design-specs',
+                          child: Text('Design Specs'),
                         ),
                         if (!isArchived)
                           const PopupMenuItem(

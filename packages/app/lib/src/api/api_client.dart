@@ -492,6 +492,60 @@ class ApiClient {
         .toList();
   }
 
+  // ---- Design Specs and diagrams ----
+
+  /// Generates a Design Spec and its companion Mermaid diagram from an
+  /// existing Task Spec artifact in one call -- see
+  /// `docs/PHASE_4_SPEC.md`: the two are always produced together so a
+  /// diagram's screens/navigation never disagree with its spec's.
+  Future<({core.Artifact designSpec, core.Artifact diagram})>
+  generateDesignSpec(
+    String orgId,
+    String projectId,
+    String taskSpecArtifactId,
+  ) async {
+    final body =
+        await _send(
+              'POST',
+              _uri('/orgs/$orgId/projects/$projectId/design-specs/generate'),
+              json: {'taskSpecArtifactId': taskSpecArtifactId},
+            )
+            as Map<String, Object?>;
+    return (
+      designSpec: core.Artifact.fromJson(
+        body['designSpec'] as Map<String, Object?>,
+      ),
+      diagram: core.Artifact.fromJson(body['diagram'] as Map<String, Object?>),
+    );
+  }
+
+  Future<List<core.Artifact>> listDesignSpecs(
+    String orgId,
+    String projectId,
+  ) async {
+    final body =
+        await _send(
+              'GET',
+              _uri('/orgs/$orgId/projects/$projectId/design-specs'),
+            )
+            as List;
+    return body
+        .map((e) => core.Artifact.fromJson(e as Map<String, Object?>))
+        .toList();
+  }
+
+  Future<List<core.Artifact>> listDiagrams(
+    String orgId,
+    String projectId,
+  ) async {
+    final body =
+        await _send('GET', _uri('/orgs/$orgId/projects/$projectId/diagrams'))
+            as List;
+    return body
+        .map((e) => core.Artifact.fromJson(e as Map<String, Object?>))
+        .toList();
+  }
+
   // ---- Dashboard ----
 
   Future<core.DashboardSummary> dashboard() async {

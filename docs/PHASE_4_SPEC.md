@@ -56,6 +56,23 @@ user/screen flow diagram with requirement IDs on nodes, rendered in the app.
   page supplies its own explicit light/dark background color instead (matching
   `Theme.of(context).brightness`), with a regression test guarding against reintroducing
   `"transparent"` anywhere in the composed HTML.
+- **Design Specs/diagrams are paired by version, not an explicit foreign key.** `generate()`
+  always creates exactly one `designSpec` artifact and one `diagram` artifact together, so their
+  per-(project,kind) version counters stay in lockstep -- the dialog lists both collections and
+  matches each spec to its diagram by `version`, the same way other artifact pairs in this
+  codebase are related.
+- **Slice 3 was verified live against the real Claude Code CLI, not mocked.** A throwaway org/repo
+  seeded a real ERF -> Message -> Task Spec chain, then "Generate from Task Spec..." was driven
+  against the real server and CLI to confirm the picker, the generated screens/states/navigation,
+  and the paired diagram all render with real model output. The sandbox here has no Accessibility
+  permission, so real clicks/scrolling inside the running macOS app aren't possible -- verification
+  instead isolated the one layout composition that was actually new risk (a `MermaidView` bounded by
+  a `SizedBox`, inside an `ExpansionTile`'s children, inside a `ListView`) in a minimal, correctly
+  sized preview using real generated Mermaid text, which rendered correctly with no overflow or
+  crash. Driving `showDesignSpecDialog` via `addPostFrameCallback` on the app's initial route never
+  displayed anything in two attempts -- worth avoiding as a pattern, though nothing using it shipped.
+  The throwaway org and all scratch files were deleted afterward; no code from this verification
+  harness is part of the committed slice.
 
 ## Build order
 
@@ -77,4 +94,4 @@ end -- i.e. the full chain from Phase 3's ERF import through to a rendered diagr
 
 - [x] 1. DesignSpec model + CreativeExtractionService + generate/list routes
 - [x] 2. MermaidView widget (webview_flutter + vendored mermaid.js)
-- [ ] 3. Design Spec + diagram review UI, wired end to end
+- [x] 3. Design Spec + diagram review UI, wired end to end

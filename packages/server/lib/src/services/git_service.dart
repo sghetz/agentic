@@ -96,6 +96,25 @@ class GitService {
     ], workingDirectory: repoPath);
   }
 
+  /// The diff between where [branchName] diverged from [baseBranch] and its
+  /// current `HEAD` (`base...HEAD`, not `base..HEAD`) -- i.e. just what this
+  /// branch added, unaffected by anything [baseBranch] has moved onto since.
+  /// Used to show Reviewer exactly what Developer changed without giving it
+  /// any `git` tool access of its own.
+  Future<String> diff({
+    required String worktreePath,
+    required String baseBranch,
+  }) async {
+    final result = await Process.run('git', [
+      'diff',
+      '$baseBranch...HEAD',
+    ], workingDirectory: worktreePath);
+    if (result.exitCode != 0) {
+      throw GitOperationException('git diff failed: ${result.stderr}');
+    }
+    return result.stdout as String;
+  }
+
   Future<bool> hasUncommittedChanges(String worktreePath) async {
     final result = await Process.run('git', [
       'status',

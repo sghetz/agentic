@@ -232,7 +232,7 @@ void main() {
   });
 
   group('mergePr', () {
-    test('merges with the requested method and deletes the branch', () async {
+    test('merges with the requested method', () async {
       final service = serviceReturning((_) => _ok(''));
 
       await service.mergePr(
@@ -242,14 +242,19 @@ void main() {
       );
 
       expect(calls.single.executable, 'gh');
-      expect(calls.single.args, [
-        'pr',
-        'merge',
-        '42',
-        '--rebase',
-        '--delete-branch',
-      ]);
+      expect(calls.single.args, ['pr', 'merge', '42', '--rebase']);
     });
+
+    test(
+      'never passes --delete-branch (still checked out in a worktree)',
+      () async {
+        final service = serviceReturning((_) => _ok(''));
+
+        await service.mergePr(workingDirectory: '/repo/worktree', prNumber: 42);
+
+        expect(calls.single.args, isNot(contains('--delete-branch')));
+      },
+    );
 
     test('defaults to squash', () async {
       final service = serviceReturning((_) => _ok(''));

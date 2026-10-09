@@ -62,6 +62,21 @@ approved, merged PR, with the owner only at checkpoints.
   transition); any other starting status that can't reach `inDevelopment` (new, inReview,
   done, ...) falls through to the task state machine's own check and comes back as the existing
   409 + allowed-transitions shape, with no new error path to maintain.
+- **`mergePr` never passes `gh`'s `--delete-branch` flag.** At the point approval happens, the
+  branch is still checked out in the task's worktree, and `git branch -D` refuses to delete a
+  branch checked out in *any* worktree, not just the one `gh` runs from -- passing it would make
+  every merge fail. The local branch is deleted deterministically instead, via `removeWorktree`,
+  after a successful merge; the remote branch is left for the repo's own merge-cleanup settings
+  (or manual cleanup) to handle.
+- **Reviewer never runs `git diff` itself -- the diff is computed deterministically beforehand
+  and inlined into its prompt.** Reviewer's tool access is otherwise identical to Developer's
+  (`Edit` + `flutter`/`dart`/`fvm` bash, no `git`/`gh`), and a read-only `git diff`/`log` carve-out
+  would be one more allowlist pattern to get exactly right for no real benefit over just computing
+  the diff server-side and handing it over as text.
+- **`POST .../review` takes no body -- it re-finds whatever Task Spec (and Design Spec, if any)
+  `develop()` used**, via the `artifactAttached` events `develop()` already records, rather than
+  asking the owner to re-pick the same artifact a second time. `develop()` itself still requires
+  an explicit `taskSpecArtifactId`, since nothing is attached yet at that point.
 - **`core.ReviewReport`** (per `AGENTS.md`): acceptance criteria met/unmet, requirement coverage
   (which requirement IDs from the Task Spec are addressed), code quality issues, and missing
   tests noted (whether or not Reviewer wrote any itself). Stored as the task-scoped `review`
@@ -94,5 +109,5 @@ checkpoints.
 
 - [x] 1. GitHubService + ReviewReport model
 - [x] 2. DeveloperService + develop route
-- [ ] 3. ReviewService + review/approve/pr-checks routes
+- [x] 3. ReviewService + review/approve/pr-checks routes
 - [ ] 4. Task detail UI, wired end to end, live-verified

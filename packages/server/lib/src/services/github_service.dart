@@ -185,12 +185,15 @@ class GitHubService {
       GitHubMergeMethod.squash => '--squash',
       GitHubMergeMethod.rebase => '--rebase',
     };
+    // No `--delete-branch`: the branch is still checked out in the task's
+    // worktree at this point (removed separately, after a successful
+    // merge), and `git branch -D` refuses to delete a branch checked out
+    // in any worktree, not just the one in `workingDirectory`.
     final result = await _runner('gh', [
       'pr',
       'merge',
       '$prNumber',
       flag,
-      '--delete-branch',
     ], workingDirectory: workingDirectory);
     if (result.exitCode != 0) {
       throw GitHubOperationException('gh pr merge failed: ${result.stderr}');

@@ -93,4 +93,54 @@ void main() {
       throwsA(isA<GitOperationException>()),
     );
   });
+
+  group('diff', () {
+    test(
+      'shows only what the branch added since diverging from base',
+      () async {
+        final worktreePath = '${tmp.path}/worktree';
+        await service.createWorktree(
+          repoPath: seedPath,
+          branchName: 'feature',
+          worktreePath: worktreePath,
+        );
+        await File('$worktreePath/feature.txt').writeAsString('new stuff');
+        await _git(['add', '.'], cwd: worktreePath);
+        await _git([
+          '-c',
+          'user.email=test@example.com',
+          '-c',
+          'user.name=Test',
+          'commit',
+          '-m',
+          'add feature',
+        ], cwd: worktreePath);
+
+        final diff = await service.diff(
+          worktreePath: worktreePath,
+          baseBranch: 'main',
+        );
+
+        expect(diff, contains('feature.txt'));
+        expect(diff, contains('new stuff'));
+      },
+    );
+
+    test('throws GitOperationException for an unknown base branch', () async {
+      final worktreePath = '${tmp.path}/worktree2';
+      await service.createWorktree(
+        repoPath: seedPath,
+        branchName: 'feature2',
+        worktreePath: worktreePath,
+      );
+
+      expect(
+        () => service.diff(
+          worktreePath: worktreePath,
+          baseBranch: 'no-such-branch',
+        ),
+        throwsA(isA<GitOperationException>()),
+      );
+    });
+  });
 }

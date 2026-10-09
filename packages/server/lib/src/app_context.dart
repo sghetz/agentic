@@ -15,6 +15,7 @@ import 'services/health_check_service.dart';
 import 'services/health_runner.dart';
 import 'services/message_routing_service.dart';
 import 'services/onboarding_service.dart';
+import 'services/review_service.dart';
 import 'services/trivial_fix_service.dart';
 import 'services/whatsapp_import_service.dart';
 import 'storage/org_database.dart';
@@ -32,7 +33,10 @@ class AppContext {
     required this.healthCheckService,
     required this.trivialFixService,
     required this.developerService,
+    required this.reviewService,
     required this.paths,
+    this.gitService = const GitService(),
+    this.githubService = const GitHubService(),
     this.conversationService = const ClaudeConversationService(),
     this.analystExtractionService = const AnalystExtractionService(),
     this.routingService = const MessageRoutingService(),
@@ -82,6 +86,13 @@ class AppContext {
         githubService: const GitHubService(),
         runner: runner,
       ),
+      reviewService: ReviewService(
+        paths: paths,
+        gitService: gitService,
+        githubService: const GitHubService(),
+        runner: runner,
+      ),
+      gitService: gitService,
       paths: paths,
     );
   }
@@ -91,6 +102,9 @@ class AppContext {
   final HealthCheckService healthCheckService;
   final TrivialFixService trivialFixService;
   final DeveloperService developerService;
+  final ReviewService reviewService;
+  final GitService gitService;
+  final GitHubService githubService;
   final ClaudeConversationService conversationService;
   final AnalystExtractionService analystExtractionService;
   final MessageRoutingService routingService;

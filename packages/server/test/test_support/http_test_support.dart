@@ -16,6 +16,7 @@ import 'package:server/src/services/health_check_service.dart';
 import 'package:server/src/services/health_runner.dart';
 import 'package:server/src/services/message_routing_service.dart';
 import 'package:server/src/services/onboarding_service.dart';
+import 'package:server/src/services/review_service.dart';
 import 'package:server/src/services/trivial_fix_service.dart';
 import 'package:server/src/storage/org_database.dart';
 import 'package:server/src/storage/registry_database.dart';
@@ -28,9 +29,18 @@ AppContext buildTestContext({
   MessageRoutingService? routingService,
   CreativeExtractionService? creativeExtractionService,
   DeveloperService? developerService,
+  ReviewService? reviewService,
+  GitHubService? githubService,
+  AgenticPaths? paths,
 }) {
-  final tempDir = Directory.systemTemp.createTempSync('agentic_test_');
-  final paths = AgenticPaths('${tempDir.path}/data', '${tempDir.path}/repos');
+  // A test that builds its own custom developerService/reviewService (which
+  // each need an AgenticPaths) must pass that *same* instance here too --
+  // ctx.paths is used directly by routes like pr-checks/approve, and a
+  // mismatched second instance points at a directory nothing ever wrote to.
+  if (paths == null) {
+    final tempDir = Directory.systemTemp.createTempSync('agentic_test_');
+    paths = AgenticPaths('${tempDir.path}/data', '${tempDir.path}/repos');
+  }
   const gitService = GitService();
   const detector = FlutterVersionDetector();
   return AppContext(
@@ -76,6 +86,33 @@ AppContext buildTestContext({
           invoker: (_, {required workingDirectory}) async =>
               jsonEncode({'result': 'no changes made'}),
         ),
+    // Never calls the real `claude` CLI in tests. Only reached when a test
+    // actually sets up a worktree first (otherwise `review()` throws
+    // `NoWorktreeFound` before ever invoking Claude). Tests that care about
+    // Review behavior inject their own `reviewService` directly.
+    reviewService:
+        reviewService ??
+        ReviewService(
+          paths: paths,
+          gitService: gitService,
+          githubService: const GitHubService(),
+          runner: const HealthRunner(),
+          invoker: (_, {required workingDirectory}) async => jsonEncode({
+            'structured_output': {
+              'summary': 'no review performed',
+              'acceptanceCriteriaMet': <String>[],
+              'acceptanceCriteriaUnmet': <String>[],
+              'requirementIdsCovered': <String>[],
+              'requirementIdsMissing': <String>[],
+              'codeQualityIssues': <String>[],
+              'missingTests': <String>[],
+            },
+          }),
+        ),
+    // Used directly by the pr-checks/approve routes (not just nested inside
+    // developerService/reviewService) -- tests that exercise those routes
+    // must pass the *same* fake instance here too.
+    githubService: githubService ?? const GitHubService(),
     paths: paths,
     // Never calls the real `claude` CLI in tests. Tests that care about
     // chat-reply behavior pass their own `conversationService`.

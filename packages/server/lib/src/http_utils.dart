@@ -5,8 +5,10 @@ import 'package:shelf/shelf.dart';
 import 'repositories/org_store.dart';
 import 'repositories/registry_store.dart';
 import 'services/git_service.dart';
+import 'services/github_service.dart';
 import 'services/markitdown_service.dart';
 import 'services/onboarding_service.dart';
+import 'services/review_service.dart';
 
 const jsonHeaders = {'content-type': 'application/json'};
 
@@ -64,6 +66,12 @@ Future<Response> guarded(Future<Response> Function() action) async {
     );
   } on GitOperationException catch (e) {
     return upstreamErrorResponse(e.message);
+  } on GitHubOperationException catch (e) {
+    return upstreamErrorResponse(e.message);
+  } on NoWorktreeFound catch (e) {
+    return badRequestResponse(
+      'No worktree found for task ${e.taskId} -- run develop first',
+    );
   } on InvalidTaskTransition catch (e) {
     return conflictResponse({
       'error': 'invalid transition',

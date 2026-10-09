@@ -3,7 +3,7 @@
 Each phase ends with something usable. Do not start a phase until the previous one's
 "Done when" is met. Update the Status line as work progresses.
 
-**Current phase: 4**
+**Current phase: 5**
 
 ## Phase 0: Foundations (no AI yet)
 

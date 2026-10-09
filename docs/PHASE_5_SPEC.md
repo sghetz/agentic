@@ -51,6 +51,17 @@ approved, merged PR, with the owner only at checkpoints.
   generous timeout**, the same pattern already used for Health's clone+build+pipeline and
   Creative's generation call -- no new job queue/WebSocket-progress infrastructure. The UI shows
   a loading state while waiting, same as the existing Design Spec "Generate..." button.
+- **Task-scoped artifacts (`pr`/`review`) gained a `content` field.** `CreateArtifactRequest`/
+  `OrgStore.createArtifact` only ever supported `uri` before this slice -- fine when nothing
+  produced a `pr`/`review` artifact yet, but `ReviewReport` has no natural `uri` and
+  `PullRequestInfo` carries more than its own `url`. Mirrors the field project-scoped artifacts
+  (`createProjectArtifact`) already had.
+- **The develop route reuses the existing `statusChanged`/`InvalidTaskTransition` machinery
+  instead of a bespoke guard.** It only appends a `-> inDevelopment` event when the task isn't
+  already there (so a retry after `verificationFailed` doesn't re-append a same-state
+  transition); any other starting status that can't reach `inDevelopment` (new, inReview,
+  done, ...) falls through to the task state machine's own check and comes back as the existing
+  409 + allowed-transitions shape, with no new error path to maintain.
 - **`core.ReviewReport`** (per `AGENTS.md`): acceptance criteria met/unmet, requirement coverage
   (which requirement IDs from the Task Spec are addressed), code quality issues, and missing
   tests noted (whether or not Reviewer wrote any itself). Stored as the task-scoped `review`
@@ -82,6 +93,6 @@ checkpoints.
 (Update after each approved slice.)
 
 - [x] 1. GitHubService + ReviewReport model
-- [ ] 2. DeveloperService + develop route
+- [x] 2. DeveloperService + develop route
 - [ ] 3. ReviewService + review/approve/pr-checks routes
 - [ ] 4. Task detail UI, wired end to end, live-verified

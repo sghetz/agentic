@@ -457,6 +457,7 @@ class OrgStore {
             taskId: Value(taskId),
             kind: request.kind,
             uri: request.uri,
+            content: Value(request.content),
             version: nextVersion,
             createdAt: now,
           ),
@@ -466,6 +467,7 @@ class OrgStore {
       taskId: taskId,
       kind: request.kind,
       uri: request.uri,
+      content: request.content,
       version: nextVersion,
       createdAt: now,
     );

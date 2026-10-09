@@ -11,6 +11,7 @@ _CreateArtifactRequest _$CreateArtifactRequestFromJson(
 ) => _CreateArtifactRequest(
   kind: $enumDecode(_$ArtifactKindEnumMap, json['kind']),
   uri: json['uri'] as String,
+  content: json['content'] as String?,
 );
 
 Map<String, dynamic> _$CreateArtifactRequestToJson(
@@ -18,6 +19,7 @@ Map<String, dynamic> _$CreateArtifactRequestToJson(
 ) => <String, dynamic>{
   'kind': _$ArtifactKindEnumMap[instance.kind]!,
   'uri': instance.uri,
+  'content': instance.content,
 };
 
 const _$ArtifactKindEnumMap = {

@@ -7,9 +7,11 @@ import 'package:server/src/repositories/registry_store.dart';
 import 'package:server/src/services/analyst_extraction_service.dart';
 import 'package:server/src/services/claude_conversation_service.dart';
 import 'package:server/src/services/creative_extraction_service.dart';
+import 'package:server/src/services/developer_service.dart';
 import 'package:server/src/services/failure_diagnosis_service.dart';
 import 'package:server/src/services/flutter_version_detector.dart';
 import 'package:server/src/services/git_service.dart';
+import 'package:server/src/services/github_service.dart';
 import 'package:server/src/services/health_check_service.dart';
 import 'package:server/src/services/health_runner.dart';
 import 'package:server/src/services/message_routing_service.dart';
@@ -25,6 +27,7 @@ AppContext buildTestContext({
   AnalystExtractionService? analystExtractionService,
   MessageRoutingService? routingService,
   CreativeExtractionService? creativeExtractionService,
+  DeveloperService? developerService,
 }) {
   final tempDir = Directory.systemTemp.createTempSync('agentic_test_');
   final paths = AgenticPaths('${tempDir.path}/data', '${tempDir.path}/repos');
@@ -59,6 +62,20 @@ AppContext buildTestContext({
       invoker: (_, {required workingDirectory}) async =>
           jsonEncode({'result': 'no changes made'}),
     ),
+    // Never calls the real `claude` CLI or `gh`/`git push` in tests, and
+    // never actually edits anything -- returns no changes, so every test
+    // run safely discards the worktree it creates. Tests that care about
+    // Developer behavior inject their own `developerService` directly.
+    developerService:
+        developerService ??
+        DeveloperService(
+          paths: paths,
+          gitService: gitService,
+          githubService: const GitHubService(),
+          runner: const HealthRunner(),
+          invoker: (_, {required workingDirectory}) async =>
+              jsonEncode({'result': 'no changes made'}),
+        ),
     paths: paths,
     // Never calls the real `claude` CLI in tests. Tests that care about
     // chat-reply behavior pass their own `conversationService`.

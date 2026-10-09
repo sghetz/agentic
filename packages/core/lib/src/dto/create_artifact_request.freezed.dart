@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreateArtifactRequest {
 
- ArtifactKind get kind; String get uri;
+ ArtifactKind get kind; String get uri; String? get content;
 /// Create a copy of CreateArtifactRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $CreateArtifactRequestCopyWith<CreateArtifactRequest> get copyWith => _$CreateAr
 @override
 bool operator ==(Object other) {
   final _this = this as CreateArtifactRequest;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateArtifactRequest&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.uri, _this.uri) || other.uri == _this.uri));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateArtifactRequest&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.uri, _this.uri) || other.uri == _this.uri)&&(identical(other.content, _this.content) || other.content == _this.content));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as CreateArtifactRequest;
-  return Object.hash(runtimeType,_this.kind,_this.uri);
+  return Object.hash(runtimeType,_this.kind,_this.uri,_this.content);
 }
 
 @override
 String toString() {
   final _this = this as CreateArtifactRequest;
-  return 'CreateArtifactRequest(kind: ${_this.kind}, uri: ${_this.uri})';
+  return 'CreateArtifactRequest(kind: ${_this.kind}, uri: ${_this.uri}, content: ${_this.content})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $CreateArtifactRequestCopyWith<$Res>  {
   factory $CreateArtifactRequestCopyWith(CreateArtifactRequest value, $Res Function(CreateArtifactRequest) _then) = _$CreateArtifactRequestCopyWithImpl;
 @useResult
 $Res call({
- ArtifactKind kind, String uri
+ ArtifactKind kind, String uri, String? content
 });
 
 
@@ -71,11 +71,12 @@ class _$CreateArtifactRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateArtifactRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? kind = null,Object? uri = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? kind = null,Object? uri = null,Object? content = freezed,}) {
   return _then(CreateArtifactRequest(
 kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as ArtifactKind,uri: null == uri ? _self.uri : uri // ignore: cast_nullable_to_non_nullable
-as String,
+as String,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -157,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ArtifactKind kind,  String uri)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ArtifactKind kind,  String uri,  String? content)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateArtifactRequest() when $default != null:
-return $default(_that.kind,_that.uri);case _:
+return $default(_that.kind,_that.uri,_that.content);case _:
   return orElse();
 
 }
@@ -178,10 +179,10 @@ return $default(_that.kind,_that.uri);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ArtifactKind kind,  String uri)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ArtifactKind kind,  String uri,  String? content)  $default,) {final _that = this;
 switch (_that) {
 case _CreateArtifactRequest():
-return $default(_that.kind,_that.uri);}
+return $default(_that.kind,_that.uri,_that.content);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -195,10 +196,10 @@ return $default(_that.kind,_that.uri);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ArtifactKind kind,  String uri)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ArtifactKind kind,  String uri,  String? content)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateArtifactRequest() when $default != null:
-return $default(_that.kind,_that.uri);case _:
+return $default(_that.kind,_that.uri,_that.content);case _:
   return null;
 
 }
@@ -210,11 +211,12 @@ return $default(_that.kind,_that.uri);case _:
 @JsonSerializable()
 
 class _CreateArtifactRequest implements CreateArtifactRequest {
-  const _CreateArtifactRequest({required this.kind, required this.uri});
+  const _CreateArtifactRequest({required this.kind, required this.uri, this.content});
   factory _CreateArtifactRequest.fromJson(Map<String, dynamic> json) => _$CreateArtifactRequestFromJson(json);
 
 @override final  ArtifactKind kind;
 @override final  String uri;
+@override final  String? content;
 
 /// Create a copy of CreateArtifactRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -229,18 +231,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateArtifactRequest&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.uri, uri) || other.uri == uri));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateArtifactRequest&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.uri, uri) || other.uri == uri)&&(identical(other.content, content) || other.content == content));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,kind,uri);
+    return Object.hash(runtimeType,kind,uri,content);
 }
 
 @override
 String toString() {
-    return 'CreateArtifactRequest(kind: $kind, uri: $uri)';
+    return 'CreateArtifactRequest(kind: $kind, uri: $uri, content: $content)';
 }
 
 
@@ -251,7 +253,7 @@ abstract mixin class _$CreateArtifactRequestCopyWith<$Res> implements $CreateArt
   factory _$CreateArtifactRequestCopyWith(_CreateArtifactRequest value, $Res Function(_CreateArtifactRequest) _then) = __$CreateArtifactRequestCopyWithImpl;
 @override @useResult
 $Res call({
- ArtifactKind kind, String uri
+ ArtifactKind kind, String uri, String? content
 });
 
 
@@ -268,11 +270,12 @@ class __$CreateArtifactRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateArtifactRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? kind = null,Object? uri = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? kind = null,Object? uri = null,Object? content = freezed,}) {
   return _then(_CreateArtifactRequest(
 kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as ArtifactKind,uri: null == uri ? _self.uri : uri // ignore: cast_nullable_to_non_nullable
-as String,
+as String,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

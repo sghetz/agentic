@@ -420,6 +420,54 @@ void main() {
       expect(roundTripped.requirementIdsMissing, isEmpty);
       expect(roundTripped.missingTests, isEmpty);
     });
+
+    test('DeveloperRunResult: prOpened, with a verification report and PR', () {
+      final result = DeveloperRunResult(
+        outcome: DeveloperOutcome.prOpened,
+        branchName: 'agentic/task-1',
+        summary: 'Implemented password reset via email.',
+        verificationReport: HealthReport(
+          status: HealthCheckStepStatus.passed,
+          steps: const [
+            HealthCheckStep(
+              name: 'pub_get',
+              status: HealthCheckStepStatus.passed,
+              durationMs: 400,
+              output: 'Got dependencies!',
+            ),
+          ],
+          startedAt: DateTime.utc(2026, 1, 1),
+          finishedAt: DateTime.utc(2026, 1, 1, 0, 1),
+        ),
+        pullRequest: const PullRequestInfo(
+          number: 42,
+          url: 'https://github.com/org/repo/pull/42',
+          branch: 'agentic/task-1',
+          baseBranch: 'main',
+        ),
+      );
+      expect(DeveloperRunResult.fromJson(result.toJson()), result);
+    });
+
+    test('DeveloperRunResult: noChanges, no branch or reports', () {
+      const result = DeveloperRunResult(
+        outcome: DeveloperOutcome.noChanges,
+        summary: 'Nothing needed to change.',
+      );
+      final roundTripped = DeveloperRunResult.fromJson(result.toJson());
+      expect(roundTripped, result);
+      expect(roundTripped.branchName, isNull);
+      expect(roundTripped.pullRequest, isNull);
+    });
+
+    test('CreateArtifactRequest with content', () {
+      const request = CreateArtifactRequest(
+        kind: ArtifactKind.review,
+        uri: 'review:task-1:v1',
+        content: '{"summary":"Looks good."}',
+      );
+      expect(CreateArtifactRequest.fromJson(request.toJson()), request);
+    });
   });
 
   group('Actor', () {

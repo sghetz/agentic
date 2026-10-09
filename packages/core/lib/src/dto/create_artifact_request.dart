@@ -11,6 +11,7 @@ sealed class CreateArtifactRequest with _$CreateArtifactRequest {
   const factory CreateArtifactRequest({
     required ArtifactKind kind,
     required String uri,
+    String? content,
   }) = _CreateArtifactRequest;
 
   factory CreateArtifactRequest.fromJson(Map<String, Object?> json) =>

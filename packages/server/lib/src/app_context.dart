@@ -5,10 +5,12 @@ import 'services/analyst_extraction_service.dart';
 import 'services/chat_stream_hub.dart';
 import 'services/claude_conversation_service.dart';
 import 'services/creative_extraction_service.dart';
+import 'services/developer_service.dart';
 import 'services/erf_import_service.dart';
 import 'services/failure_diagnosis_service.dart';
 import 'services/flutter_version_detector.dart';
 import 'services/git_service.dart';
+import 'services/github_service.dart';
 import 'services/health_check_service.dart';
 import 'services/health_runner.dart';
 import 'services/message_routing_service.dart';
@@ -29,6 +31,7 @@ class AppContext {
     required this.onboardingService,
     required this.healthCheckService,
     required this.trivialFixService,
+    required this.developerService,
     required this.paths,
     this.conversationService = const ClaudeConversationService(),
     this.analystExtractionService = const AnalystExtractionService(),
@@ -73,6 +76,12 @@ class AppContext {
         gitService: gitService,
         runner: runner,
       ),
+      developerService: DeveloperService(
+        paths: paths,
+        gitService: gitService,
+        githubService: const GitHubService(),
+        runner: runner,
+      ),
       paths: paths,
     );
   }
@@ -81,6 +90,7 @@ class AppContext {
   final OnboardingService onboardingService;
   final HealthCheckService healthCheckService;
   final TrivialFixService trivialFixService;
+  final DeveloperService developerService;
   final ClaudeConversationService conversationService;
   final AnalystExtractionService analystExtractionService;
   final MessageRoutingService routingService;

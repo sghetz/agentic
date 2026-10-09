@@ -18,14 +18,14 @@ class GitHubOperationException implements Exception {
 /// something else.
 enum GitHubMergeMethod { merge, squash, rebase }
 
-typedef ProcessRunner =
+typedef GhProcessRunner =
     Future<ProcessResult> Function(
       String executable,
       List<String> args, {
       String? workingDirectory,
     });
 
-Future<ProcessResult> _defaultProcessRunner(
+Future<ProcessResult> _defaultGhProcessRunner(
   String executable,
   List<String> args, {
   String? workingDirectory,
@@ -37,10 +37,10 @@ Future<ProcessResult> _defaultProcessRunner(
 /// never gets a `git` or `gh` tool, so every push/PR/merge operation in this
 /// phase happens here instead.
 class GitHubService {
-  const GitHubService({ProcessRunner runner = _defaultProcessRunner})
+  const GitHubService({GhProcessRunner runner = _defaultGhProcessRunner})
     : _runner = runner;
 
-  final ProcessRunner _runner;
+  final GhProcessRunner _runner;
 
   Future<void> pushBranch({
     required String worktreePath,

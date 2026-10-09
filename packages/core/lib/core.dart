@@ -4,6 +4,7 @@ export 'src/id.dart';
 export 'src/task_state_machine.dart';
 
 export 'src/enums/artifact_kind.dart';
+export 'src/enums/developer_outcome.dart';
 export 'src/enums/failure_diagnosis_category.dart';
 export 'src/enums/health_check_step_status.dart';
 export 'src/enums/health_fix_outcome.dart';
@@ -21,6 +22,7 @@ export 'src/models/artifact.dart';
 export 'src/models/chat_message.dart';
 export 'src/models/conversation.dart';
 export 'src/models/design_spec.dart';
+export 'src/models/developer_run_result.dart';
 export 'src/models/health_fix_result.dart';
 export 'src/models/health_report.dart';
 export 'src/models/message.dart';

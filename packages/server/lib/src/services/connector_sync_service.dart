@@ -96,8 +96,9 @@ class ConnectorSyncService {
     final existingExternalIds = existing.map((m) => m.externalId).toSet();
     DateTime? since;
     for (final message in existing) {
-      if (since == null || message.sentAt.isAfter(since))
+      if (since == null || message.sentAt.isAfter(since)) {
         since = message.sentAt;
+      }
     }
 
     final fetched = await adapter.fetchSince(accessToken, since);

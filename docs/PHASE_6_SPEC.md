@@ -58,6 +58,18 @@ installed app.
   `externalId` dedup is still the actual correctness guarantee; the cursor is purely an efficiency
   optimization so a resync doesn't re-fetch an entire mailbox.
 
+- **Slice 3 needed zero new routes, zero new `AppContext`/sync-service changes** -- just a
+  `ConnectorDefinition`, a `ZoomAdapter`, and two lines registering both in
+  `ConnectorRegistry`. `POST .../sources/<sourceId>/sync` already worked for any
+  `oauthConnector` source regardless of `connectorId`, since slice 1/2 built that generically.
+  This is the framework paying off exactly as intended.
+- **`ZoomAdapter` is a two-step fetch**: list recordings (`/users/me/recordings`, `from`/`to` +
+  `next_page_token` pagination), then download the `TRANSCRIPT`-type recording file's VTT content
+  for each meeting that has one. A meeting with no transcript (not cloud-recorded, or
+  transcription wasn't enabled) is silently skipped, not an error -- most meetings won't have one.
+- **`ConnectorMessage.author` is left unset for transcripts.** Unlike a mail message, a meeting
+  transcript has no single sender -- forcing one would misrepresent a multi-party conversation.
+
 ## Build order
 
 1. Connector framework core: `core.ConnectorDefinition`, `ConnectorAdapter` interface, a static
@@ -88,6 +100,6 @@ manual file copying.
 
 - [x] 1. Connector framework core (OAuth routes, Keychain storage, registry)
 - [x] 2. Outlook connector adapter
-- [ ] 3. Meeting-transcript connector adapter (Zoom)
+- [x] 3. Meeting-transcript connector adapter (Zoom)
 - [ ] 4. Connections UI
 - [ ] 5. Packaging (compile exe, launchd, DMG, first-run wizard)

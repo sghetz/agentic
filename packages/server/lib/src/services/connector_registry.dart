@@ -2,6 +2,7 @@ import 'package:core/core.dart' as core;
 
 import 'connector_adapter.dart';
 import 'outlook_adapter.dart';
+import 'zoom_adapter.dart';
 
 /// The built-in set of connectors Agentic ships support for. Adding a new
 /// service means appending one `core.ConnectorDefinition` here plus one
@@ -15,12 +16,20 @@ const List<core.ConnectorDefinition> builtInConnectorDefinitions = [
     tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
     scopes: ['Mail.Read', 'offline_access'],
   ),
+  core.ConnectorDefinition(
+    id: 'zoom',
+    displayName: 'Zoom (meeting transcripts)',
+    authorizeUrl: 'https://zoom.us/oauth/authorize',
+    tokenUrl: 'https://zoom.us/oauth/token',
+    scopes: ['cloud_recording:read:list_user_recordings'],
+  ),
 ];
 
-// Not `const`: OutlookAdapter holds an `http.Client`, which can't be
-// constructed at compile time.
+// Not `const`: OutlookAdapter/ZoomAdapter each hold an `http.Client`, which
+// can't be constructed at compile time.
 final Map<String, ConnectorAdapter> builtInConnectorAdapters = {
   'outlook': OutlookAdapter(),
+  'zoom': ZoomAdapter(),
 };
 
 /// Holds the registered connector definitions (served to the UI via

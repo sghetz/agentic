@@ -73,3 +73,15 @@ Future<List<core.Artifact>> taskArtifacts(
 ) {
   return ref.watch(apiClientProvider).listArtifacts(orgId, taskId);
 }
+
+/// The task's current PR's live external check status. Only call this once
+/// a PR artifact actually exists -- the server 400s otherwise.
+@riverpod
+Future<List<core.PullRequestCheck>> prChecks(
+  Ref ref,
+  String orgId,
+  String projectId,
+  String taskId,
+) {
+  return ref.watch(apiClientProvider).getPrChecks(orgId, projectId, taskId);
+}

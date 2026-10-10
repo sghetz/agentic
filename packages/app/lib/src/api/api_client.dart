@@ -546,6 +546,81 @@ class ApiClient {
         .toList();
   }
 
+  // ---- Developer / Reviewer ----
+
+  /// Implements [taskSpecArtifactId] in a task-keyed worktree. Can take a
+  /// while (a real Claude Code session plus a pipeline verification run);
+  /// no client timeout. `pr` is only set when [core.DeveloperRunResult.outcome]
+  /// is `prOpened` -- every other outcome leaves the attempt local for
+  /// inspection, never pushed.
+  Future<({core.DeveloperRunResult result, core.Artifact? pr})> developTask(
+    String orgId,
+    String projectId,
+    String taskId,
+    String taskSpecArtifactId,
+  ) async {
+    final body =
+        await _send(
+              'POST',
+              _uri('/orgs/$orgId/projects/$projectId/tasks/$taskId/develop'),
+              json: {'taskSpecArtifactId': taskSpecArtifactId},
+            )
+            as Map<String, Object?>;
+    return (
+      result: core.DeveloperRunResult.fromJson(
+        body['result'] as Map<String, Object?>,
+      ),
+      pr: body['pr'] == null
+          ? null
+          : core.Artifact.fromJson(body['pr'] as Map<String, Object?>),
+    );
+  }
+
+  /// Reviews the task's current PR in place -- no body needed, the server
+  /// reuses whatever Task Spec/Design Spec `developTask` already attached.
+  Future<core.Artifact> reviewTask(
+    String orgId,
+    String projectId,
+    String taskId,
+  ) async {
+    final body =
+        await _send(
+              'POST',
+              _uri('/orgs/$orgId/projects/$projectId/tasks/$taskId/review'),
+              json: const {},
+            )
+            as Map<String, Object?>;
+    return core.Artifact.fromJson(body['review'] as Map<String, Object?>);
+  }
+
+  /// The PR's live external check status (build, Codacy, Checkmarx,
+  /// Jenkins, ...) -- always fetched fresh, never cached by the server.
+  Future<List<core.PullRequestCheck>> getPrChecks(
+    String orgId,
+    String projectId,
+    String taskId,
+  ) async {
+    final body =
+        await _send(
+              'GET',
+              _uri('/orgs/$orgId/projects/$projectId/tasks/$taskId/pr-checks'),
+            )
+            as List;
+    return body
+        .map((e) => core.PullRequestCheck.fromJson(e as Map<String, Object?>))
+        .toList();
+  }
+
+  /// The explicit human approval event rule 3 requires -- merges the PR and
+  /// moves the task to `done`.
+  Future<void> approveTask(String orgId, String projectId, String taskId) {
+    return _send(
+      'POST',
+      _uri('/orgs/$orgId/projects/$projectId/tasks/$taskId/approve'),
+      json: const {},
+    );
+  }
+
   // ---- Dashboard ----
 
   Future<core.DashboardSummary> dashboard() async {

@@ -81,6 +81,22 @@ approved, merged PR, with the owner only at checkpoints.
   (which requirement IDs from the Task Spec are addressed), code quality issues, and missing
   tests noted (whether or not Reviewer wrote any itself). Stored as the task-scoped `review`
   artifact; the PR's own metadata (number, URL, branch) stored as the task-scoped `pr` artifact.
+- **Slice 4 was verified against a real GitHub repo and the real `gh` binary, not just the test
+  suite's faked one.** Every automated test in this phase fakes `gh`'s process output, so nothing
+  had actually proven `GitHubService`'s assumptions about `gh`'s real CLI contract (createPr's
+  URL-parsing, getChecks' `statusCheckRollup` shape, mergePr's exit behavior) held up. A throwaway
+  private repo (seeded with a real `flutter create` scaffold, since the Health pipeline needs a
+  genuinely buildable project to pass) was pushed through the full real flow -- real Task Spec
+  extraction, real Developer session, real `gh pr create`, real Reviewer session, real
+  `gh pr view --json statusCheckRollup`, real `gh pr merge` -- confirming all of it against the
+  actual binary, with the real PR genuinely merging on GitHub. Deleted afterward (repo deletion
+  needs the `delete_repo` gh scope, which this machine's token doesn't have -- left for the owner
+  to grant or delete manually).
+- **Found and fixed live: `DevelopmentPanel`'s content was unbounded and overflowed the task
+  detail screen's layout** once it had real content (a PR link plus a multi-line Review summary)
+  -- it squeezed the Activity/Artifacts row below it past usable height, a genuine `RenderFlex`
+  overflow, not a sandbox artifact. Fixed by wrapping it in a height-capped `SingleChildScrollView`
+  in `task_detail_screen.dart`.
 
 ## Build order
 
@@ -110,4 +126,4 @@ checkpoints.
 - [x] 1. GitHubService + ReviewReport model
 - [x] 2. DeveloperService + develop route
 - [x] 3. ReviewService + review/approve/pr-checks routes
-- [ ] 4. Task detail UI, wired end to end, live-verified
+- [x] 4. Task detail UI, wired end to end, live-verified

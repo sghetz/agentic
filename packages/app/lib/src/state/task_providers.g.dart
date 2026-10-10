@@ -481,3 +481,98 @@ final class TaskArtifactsFamily extends $Family
   @override
   String toString() => r'taskArtifactsProvider';
 }
+
+/// The task's current PR's live external check status. Only call this once
+/// a PR artifact actually exists -- the server 400s otherwise.
+
+@ProviderFor(prChecks)
+final prChecksProvider = PrChecksFamily._();
+
+/// The task's current PR's live external check status. Only call this once
+/// a PR artifact actually exists -- the server 400s otherwise.
+
+final class PrChecksProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<core.PullRequestCheck>>,
+          List<core.PullRequestCheck>,
+          FutureOr<List<core.PullRequestCheck>>
+        >
+    with
+        $FutureModifier<List<core.PullRequestCheck>>,
+        $FutureProvider<List<core.PullRequestCheck>> {
+  /// The task's current PR's live external check status. Only call this once
+  /// a PR artifact actually exists -- the server 400s otherwise.
+  PrChecksProvider._({
+    required PrChecksFamily super.from,
+    required (String, String, String) super.argument,
+  }) : super(
+         retry: null,
+         name: r'prChecksProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$prChecksHash();
+
+  @override
+  String toString() {
+    return r'prChecksProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<core.PullRequestCheck>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<core.PullRequestCheck>> create(Ref ref) {
+    final argument = this.argument as (String, String, String);
+    return prChecks(ref, argument.$1, argument.$2, argument.$3);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PrChecksProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$prChecksHash() => r'fcbf202bfc13a47939f28911f21569045f3b1f43';
+
+/// The task's current PR's live external check status. Only call this once
+/// a PR artifact actually exists -- the server 400s otherwise.
+
+final class PrChecksFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<core.PullRequestCheck>>,
+          (String, String, String)
+        > {
+  PrChecksFamily._()
+    : super(
+        retry: null,
+        name: r'prChecksProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// The task's current PR's live external check status. Only call this once
+  /// a PR artifact actually exists -- the server 400s otherwise.
+
+  PrChecksProvider call(String orgId, String projectId, String taskId) =>
+      PrChecksProvider._(argument: (orgId, projectId, taskId), from: this);
+
+  @override
+  String toString() => r'prChecksProvider';
+}

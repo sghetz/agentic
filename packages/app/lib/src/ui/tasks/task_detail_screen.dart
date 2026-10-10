@@ -9,6 +9,7 @@ import '../common/empty_state.dart';
 import '../common/error_state.dart';
 import '../common/loading_state.dart';
 import 'as_of_date_picker.dart';
+import 'development_panel.dart';
 import 'task_event_timeline.dart';
 
 class TaskDetailScreen extends ConsumerStatefulWidget {
@@ -137,6 +138,18 @@ class _TaskDetailBody extends ConsumerWidget {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
             ],
+          ),
+          const SizedBox(height: 16),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 220),
+            child: SingleChildScrollView(
+              child: DevelopmentPanel(
+                orgId: orgId,
+                projectId: task.projectId,
+                taskId: taskId,
+                task: task,
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           Expanded(

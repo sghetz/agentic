@@ -47,6 +47,17 @@ installed app.
   the connector framework and its first two connectors are settled, so packaging work doesn't
   need redoing as new config/permissions get added mid-phase.
 
+- **`ConnectorSyncService` mirrors `WhatsAppImportService`'s pipeline exactly** (dedup by
+  `externalId` via `getOrCreateMessage`, route only new messages, extract a Task Spec from
+  whatever ends up routed) rather than inventing a new ingestion shape -- the only connector-
+  specific step is the adapter's `fetchSince` call; everything after that is the same generic
+  message pipeline every source in this codebase already shares.
+- **No new `lastSyncedAt` field -- the sync cursor is derived from the latest existing message's
+  `sentAt`**, the same "derive state from what's already stored" approach `nextVersion` already
+  uses for artifacts, rather than adding stored sync-cursor state that could drift from reality.
+  `externalId` dedup is still the actual correctness guarantee; the cursor is purely an efficiency
+  optimization so a resync doesn't re-fetch an entire mailbox.
+
 ## Build order
 
 1. Connector framework core: `core.ConnectorDefinition`, `ConnectorAdapter` interface, a static
@@ -76,7 +87,7 @@ manual file copying.
 (Update after each approved slice.)
 
 - [x] 1. Connector framework core (OAuth routes, Keychain storage, registry)
-- [ ] 2. Outlook connector adapter
+- [x] 2. Outlook connector adapter
 - [ ] 3. Meeting-transcript connector adapter (Zoom)
 - [ ] 4. Connections UI
 - [ ] 5. Packaging (compile exe, launchd, DMG, first-run wizard)

@@ -43,7 +43,7 @@ KeychainService _inMemoryKeychain() {
 
 void main() {
   late KeychainService keychain;
-  const registry = ConnectorRegistry(definitions: [_outlook]);
+  final registry = ConnectorRegistry(definitions: [_outlook]);
 
   ConnectorOAuthService buildService({
     required http.Client httpClient,

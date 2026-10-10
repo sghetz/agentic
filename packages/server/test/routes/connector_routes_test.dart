@@ -52,7 +52,7 @@ void main() {
   late String orgId;
 
   setUp(() async {
-    final registry = const ConnectorRegistry(definitions: [_outlook]);
+    final registry = ConnectorRegistry(definitions: [_outlook]);
     final connectorOAuthService = ConnectorOAuthService(
       registry: registry,
       keychain: _inMemoryKeychain(),

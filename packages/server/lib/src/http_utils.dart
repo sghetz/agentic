@@ -5,10 +5,12 @@ import 'package:shelf/shelf.dart';
 import 'repositories/org_store.dart';
 import 'repositories/registry_store.dart';
 import 'services/connector_oauth_service.dart';
+import 'services/connector_sync_service.dart';
 import 'services/git_service.dart';
 import 'services/github_service.dart';
 import 'services/markitdown_service.dart';
 import 'services/onboarding_service.dart';
+import 'services/outlook_adapter.dart';
 import 'services/review_service.dart';
 
 const jsonHeaders = {'content-type': 'application/json'};
@@ -78,6 +80,12 @@ Future<Response> guarded(Future<Response> Function() action) async {
   } on InvalidOAuthState catch (e) {
     return badRequestResponse(e.message);
   } on ConnectorOAuthException catch (e) {
+    return upstreamErrorResponse(e.message);
+  } on NotConnected catch (e) {
+    return badRequestResponse(
+      'No active connection for ${e.connectorId} -- connect it first',
+    );
+  } on OutlookSyncException catch (e) {
     return upstreamErrorResponse(e.message);
   } on InvalidTaskTransition catch (e) {
     return conflictResponse({

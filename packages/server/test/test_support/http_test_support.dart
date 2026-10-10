@@ -146,7 +146,7 @@ AppContext buildTestContext({
     // developerService/reviewService) -- tests that exercise those routes
     // must pass the *same* fake instance here too.
     githubService: githubService ?? const GitHubService(),
-    connectorRegistry: connectorRegistry ?? const ConnectorRegistry(),
+    connectorRegistry: connectorRegistry ?? ConnectorRegistry(),
     // Never hits a real OAuth provider: the default empty registry means
     // beginConnect/completeConnect throw UnknownConnector before any HTTP
     // call happens. Tests that care about a real connector flow inject
@@ -155,7 +155,7 @@ AppContext buildTestContext({
     connectorOAuthService:
         connectorOAuthService ??
         ConnectorOAuthService(
-          registry: connectorRegistry ?? const ConnectorRegistry(),
+          registry: connectorRegistry ?? ConnectorRegistry(),
           keychain: KeychainService(runner: _inMemoryKeychain()),
           redirectUri: 'http://127.0.0.1:8787/connectors/callback',
         ),

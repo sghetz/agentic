@@ -6,6 +6,7 @@ import 'services/chat_stream_hub.dart';
 import 'services/claude_conversation_service.dart';
 import 'services/connector_oauth_service.dart';
 import 'services/connector_registry.dart';
+import 'services/connector_sync_service.dart';
 import 'services/creative_extraction_service.dart';
 import 'services/developer_service.dart';
 import 'services/erf_import_service.dart';
@@ -41,7 +42,8 @@ class AppContext {
     required this.paths,
     this.gitService = const GitService(),
     this.githubService = const GitHubService(),
-    this.connectorRegistry = const ConnectorRegistry(),
+    ConnectorRegistry? connectorRegistry,
+    ConnectorSyncService? connectorSyncService,
     this.conversationService = const ClaudeConversationService(),
     this.analystExtractionService = const AnalystExtractionService(),
     this.routingService = const MessageRoutingService(),
@@ -50,6 +52,15 @@ class AppContext {
     WhatsAppImportService? whatsAppImportService,
     ChatStreamHub? chatStreamHub,
   }) : _openOrgDatabase = openOrgDatabase,
+       connectorRegistry = connectorRegistry ?? ConnectorRegistry(),
+       connectorSyncService =
+           connectorSyncService ??
+           ConnectorSyncService(
+             registry: connectorRegistry ?? ConnectorRegistry(),
+             oauth: connectorOAuthService,
+             routingService: routingService,
+             extractionService: analystExtractionService,
+           ),
        chatStreamHub = chatStreamHub ?? ChatStreamHub(),
        erfImportService =
            erfImportService ??
@@ -98,7 +109,7 @@ class AppContext {
         runner: runner,
       ),
       connectorOAuthService: ConnectorOAuthService(
-        registry: const ConnectorRegistry(),
+        registry: ConnectorRegistry(),
         keychain: const KeychainService(),
         redirectUri: 'http://127.0.0.1:8787/connectors/callback',
       ),
@@ -114,6 +125,7 @@ class AppContext {
   final DeveloperService developerService;
   final ReviewService reviewService;
   final ConnectorOAuthService connectorOAuthService;
+  final ConnectorSyncService connectorSyncService;
   final GitService gitService;
   final GitHubService githubService;
   final ConnectorRegistry connectorRegistry;

@@ -1,13 +1,58 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:http/testing.dart';
 import 'package:server/src/app_context.dart';
 import 'package:server/src/server.dart';
 import 'package:server/src/services/analyst_extraction_service.dart';
+import 'package:server/src/services/connector_adapter.dart';
+import 'package:server/src/services/connector_oauth_service.dart';
+import 'package:server/src/services/connector_registry.dart';
+import 'package:server/src/services/keychain_service.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
 import '../test_support/http_test_support.dart';
+
+class _FakeAdapter implements ConnectorAdapter {
+  _FakeAdapter(this.messages);
+
+  final List<ConnectorMessage> messages;
+
+  @override
+  String get connectorId => 'outlook';
+
+  @override
+  Future<List<ConnectorMessage>> fetchSince(
+    String accessToken,
+    DateTime? since,
+  ) async => messages;
+}
+
+/// The real orgId isn't known until *after* `createOrg` is called through
+/// the handler this keychain is already wired into -- so this returns the
+/// backing store too, seeded once the real orgId is known.
+({KeychainService keychain, Map<String, String> store})
+_mutableInMemoryKeychain() {
+  final store = <String, String>{};
+  final keychain = KeychainService(
+    runner: (executable, args) async {
+      final account = args[args.indexOf('-a') + 1];
+      final service = args[args.indexOf('-s') + 1];
+      final key = '$service|$account';
+      switch (args.first) {
+        case 'find-generic-password':
+          final value = store[key];
+          return value == null
+              ? ProcessResult(0, 44, '', 'not found')
+              : ProcessResult(0, 0, value, '');
+        default:
+          return ProcessResult(0, 1, '', 'unsupported in this fake');
+      }
+    },
+  );
+  return (keychain: keychain, store: store);
+}
 
 const _structuredOutput = {
   'structured_output': {
@@ -261,6 +306,115 @@ void main() {
 
       final (_, specsBody) = await send(
         importHandler,
+        'GET',
+        '/orgs/$org/projects/$proj/task-specs',
+      );
+      expect((specsBody! as List), hasLength(1));
+    },
+  );
+
+  test('sync 400s for a non-oauthConnector source', () async {
+    final (_, sourceBody) = await send(
+      handler,
+      'POST',
+      '/orgs/$orgId/sources',
+      json: {'kind': 'erf', 'config': {}, 'projectId': projectId},
+    );
+    final sourceId = (sourceBody! as Map)['id'] as String;
+
+    final (status, _) = await send(
+      handler,
+      'POST',
+      '/orgs/$orgId/sources/$sourceId/sync',
+    );
+    expect(status, 400);
+  });
+
+  test('sync 400s when the connector has never been connected', () async {
+    final (_, sourceBody) = await send(
+      handler,
+      'POST',
+      '/orgs/$orgId/sources',
+      json: {
+        'kind': 'oauthConnector',
+        'config': {'connectorId': 'outlook'},
+        'projectId': projectId,
+      },
+    );
+    final sourceId = (sourceBody! as Map)['id'] as String;
+
+    final (status, body) = await send(
+      handler,
+      'POST',
+      '/orgs/$orgId/sources/$sourceId/sync',
+    );
+    expect(status, 400);
+    expect((body! as Map)['error'], contains('connect it first'));
+  });
+
+  test(
+    'POST .../sync on a connected, project-scoped source imports and drafts specs',
+    () async {
+      final registry = ConnectorRegistry(
+        adapters: {
+          'outlook': _FakeAdapter([
+            ConnectorMessage(
+              externalId: 'm1',
+              author: 'alice@example.com',
+              sentAt: DateTime.utc(2026, 1, 1),
+              body: 'password reset via email, RF-07',
+            ),
+          ]),
+        },
+      );
+      final fakeKeychain = _mutableInMemoryKeychain();
+      final syncCtx = buildTestContext(
+        connectorRegistry: registry,
+        connectorOAuthService: ConnectorOAuthService(
+          registry: registry,
+          keychain: fakeKeychain.keychain,
+          redirectUri: 'http://127.0.0.1:8787/connectors/callback',
+          httpClient: MockClient(
+            (_) async => throw Exception('should never make an HTTP call'),
+          ),
+        ),
+        analystExtractionService: AnalystExtractionService(
+          invoker: (_) async => jsonEncode(_structuredOutput),
+        ),
+      );
+      final syncHandler = buildHandler(syncCtx);
+      final org = await createOrg(syncHandler, slug: 'sync-org');
+      final proj = await createProject(syncHandler, org);
+      // Only known after createOrg -- seed the token under the real orgId.
+      fakeKeychain.store['agentic.$org.connector.outlook|accessToken'] =
+          'at-123';
+
+      final (_, sourceBody) = await send(
+        syncHandler,
+        'POST',
+        '/orgs/$org/sources',
+        json: {
+          'kind': 'oauthConnector',
+          'config': {'connectorId': 'outlook'},
+          'projectId': proj,
+        },
+      );
+      final sourceId = (sourceBody! as Map)['id'] as String;
+
+      final (status, body) = await send(
+        syncHandler,
+        'POST',
+        '/orgs/$org/sources/$sourceId/sync',
+      );
+
+      expect(status, 200);
+      final map = body! as Map;
+      expect(map['newMessages'], 1);
+      expect(map['routedMessages'], 1);
+      expect(map['specsCreated'], 1);
+
+      final (_, specsBody) = await send(
+        syncHandler,
         'GET',
         '/orgs/$org/projects/$proj/task-specs',
       );

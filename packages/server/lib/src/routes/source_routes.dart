@@ -129,4 +129,43 @@ void registerSourceRoutes(Router router, AppContext ctx) {
       });
     });
   });
+
+  router.post('/orgs/<orgId>/sources/<sourceId>/sync', (
+    Request request,
+    String orgId,
+    String sourceId,
+  ) {
+    return guarded(() async {
+      final store = await ctx.orgStore(orgId);
+      if (store == null) {
+        return notFoundResponse('Organization $orgId not found');
+      }
+      final source = await store.getSource(sourceId);
+      if (source == null) {
+        return notFoundResponse('Source $sourceId not found');
+      }
+      if (source.kind != core.SourceKind.oauthConnector) {
+        return badRequestResponse(
+          'Only oauthConnector sources can be synced (got ${source.kind.name})',
+        );
+      }
+
+      try {
+        final result = await ctx.connectorSyncService.sync(
+          orgId: orgId,
+          source: source,
+          store: store,
+        );
+        return jsonResponse({
+          'newMessages': result.newMessages,
+          'routedMessages': result.routedMessages,
+          'unroutedMessages': result.unroutedMessages,
+          'specsCreated': result.specsCreated,
+          'failedMessageIds': result.failedMessageIds,
+        });
+      } on ArgumentError catch (e) {
+        return badRequestResponse(e.message as String);
+      }
+    });
+  });
 }

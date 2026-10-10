@@ -4,6 +4,8 @@ import 'repositories/registry_store.dart';
 import 'services/analyst_extraction_service.dart';
 import 'services/chat_stream_hub.dart';
 import 'services/claude_conversation_service.dart';
+import 'services/connector_oauth_service.dart';
+import 'services/connector_registry.dart';
 import 'services/creative_extraction_service.dart';
 import 'services/developer_service.dart';
 import 'services/erf_import_service.dart';
@@ -13,6 +15,7 @@ import 'services/git_service.dart';
 import 'services/github_service.dart';
 import 'services/health_check_service.dart';
 import 'services/health_runner.dart';
+import 'services/keychain_service.dart';
 import 'services/message_routing_service.dart';
 import 'services/onboarding_service.dart';
 import 'services/review_service.dart';
@@ -34,9 +37,11 @@ class AppContext {
     required this.trivialFixService,
     required this.developerService,
     required this.reviewService,
+    required this.connectorOAuthService,
     required this.paths,
     this.gitService = const GitService(),
     this.githubService = const GitHubService(),
+    this.connectorRegistry = const ConnectorRegistry(),
     this.conversationService = const ClaudeConversationService(),
     this.analystExtractionService = const AnalystExtractionService(),
     this.routingService = const MessageRoutingService(),
@@ -92,6 +97,11 @@ class AppContext {
         githubService: const GitHubService(),
         runner: runner,
       ),
+      connectorOAuthService: ConnectorOAuthService(
+        registry: const ConnectorRegistry(),
+        keychain: const KeychainService(),
+        redirectUri: 'http://127.0.0.1:8787/connectors/callback',
+      ),
       gitService: gitService,
       paths: paths,
     );
@@ -103,8 +113,10 @@ class AppContext {
   final TrivialFixService trivialFixService;
   final DeveloperService developerService;
   final ReviewService reviewService;
+  final ConnectorOAuthService connectorOAuthService;
   final GitService gitService;
   final GitHubService githubService;
+  final ConnectorRegistry connectorRegistry;
   final ClaudeConversationService conversationService;
   final AnalystExtractionService analystExtractionService;
   final MessageRoutingService routingService;

@@ -56,8 +56,9 @@ Tests must prove an agent in org A cannot retrieve any record from org B.
 projects        id, name, slug, repos(json), flutter_version, design_system_ref,
                 status, created_at, archived_at
 project_links   from_project_id, to_project_id, relation
-sources         id, kind (slack|gchat|outlook|whatsapp_import|meeting|erf), config(json),
+sources         id, kind (oauth_connector|whatsapp_import|erf), config(json),
                 project_id (nullable = org-level, needs routing)
+                -- oauth_connector's config carries {connectorId}; see §7
 messages        id, source_id, external_id, author, sent_at, body, raw(json),
                 routed_project_id, routing_confidence, processed_at
 tasks           id, project_id, title, current_status, source_message_id, created_at
@@ -134,16 +135,27 @@ Static context (design system, conventions) is placed first in prompts to maximi
 
 ## 7. Integrations
 
+Message/transcript sources that need OAuth (Outlook, meeting-transcript platforms, and
+whatever gets added later) go through one generic connector framework rather than bespoke
+per-service integrations (see `docs/PHASE_6_SPEC.md`): a built-in, code-level
+`core.ConnectorDefinition` (OAuth authorize/token URLs, scopes) plus one small
+`ConnectorAdapter` per service that fetches and normalizes its messages. The OAuth handshake,
+owner-supplied client id/secret, and issued tokens are all generic, shared, Keychain-backed
+plumbing; only the adapter's fetch-and-map logic is service-specific. The owner connects a
+service from the app's Connections screen -- no code change needed beyond the adapter itself.
+
 | Source | Approach | Notes |
 |---|---|---|
-| Slack | Web API, user token | Read channels the user is in |
-| Google Chat | Chat API, user auth | Spaces the user belongs to |
-| Outlook | Microsoft Graph | Later phase |
+| Outlook | Connector framework (Microsoft Graph) | First real connector |
+| Meeting transcripts | Connector framework (Zoom/Teams/Meet transcript APIs) | Platform transcripts only -- no local recording/whisper.cpp |
 | WhatsApp | Manual export/forward import (v1) | Unofficial clients risk account bans; Cloud API has no groups |
-| Video calls | Platform transcripts, or local recording + whisper.cpp / MLX Whisper | Needs Screen Recording + Mic permissions; ScreenCaptureKit for system audio |
 | ERF documents | MarkItDown or Docling -> markdown | Analyst extracts numbered requirements |
-| GitHub | GitHub MCP server / API | Separate token per org |
+| GitHub | `gh` CLI (deterministic server-side calls) | See Phase 5 -- not the connector framework, since it's Developer/Reviewer's own PR flow, not a message source |
 | Flutter | `dart mcp-server`, FVM | One MCP instance per project root |
+
+Slack and Google Chat were scoped in Phase 3 but never actually built (no real ingestion
+worker exists for either) -- not part of the connector framework yet; worth a dedicated look
+later, trivial to add once the framework exists (one definition + one adapter).
 
 ## 8. Design system
 

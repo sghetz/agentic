@@ -20,6 +20,7 @@ export 'src/enums/task_status.dart';
 
 export 'src/models/artifact.dart';
 export 'src/models/chat_message.dart';
+export 'src/models/connector_definition.dart';
 export 'src/models/conversation.dart';
 export 'src/models/design_spec.dart';
 export 'src/models/developer_run_result.dart';

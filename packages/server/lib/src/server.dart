@@ -4,6 +4,7 @@ import 'package:shelf_router/shelf_router.dart';
 
 import 'app_context.dart';
 import 'routes/artifacts_routes.dart';
+import 'routes/connector_routes.dart';
 import 'routes/conversations_routes.dart';
 import 'routes/dashboard_routes.dart';
 import 'routes/design_spec_routes.dart';
@@ -39,6 +40,7 @@ Router buildRouter(AppContext ctx) {
   registerReviewerRoutes(router, ctx);
   registerSourceRoutes(router, ctx);
   registerMessageRoutes(router, ctx);
+  registerConnectorRoutes(router, ctx);
 
   return router;
 }

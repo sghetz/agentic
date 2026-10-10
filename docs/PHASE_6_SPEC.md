@@ -75,7 +75,7 @@ manual file copying.
 
 (Update after each approved slice.)
 
-- [ ] 1. Connector framework core (OAuth routes, Keychain storage, registry)
+- [x] 1. Connector framework core (OAuth routes, Keychain storage, registry)
 - [ ] 2. Outlook connector adapter
 - [ ] 3. Meeting-transcript connector adapter (Zoom)
 - [ ] 4. Connections UI

@@ -22,10 +22,7 @@ Map<String, dynamic> _$CreateSourceRequestToJson(
 };
 
 const _$SourceKindEnumMap = {
-  SourceKind.slack: 'slack',
-  SourceKind.gchat: 'gchat',
-  SourceKind.outlook: 'outlook',
+  SourceKind.oauthConnector: 'oauthConnector',
   SourceKind.whatsappImport: 'whatsappImport',
-  SourceKind.meeting: 'meeting',
   SourceKind.erf: 'erf',
 };

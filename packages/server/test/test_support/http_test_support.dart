@@ -6,6 +6,8 @@ import 'package:server/src/config.dart';
 import 'package:server/src/repositories/registry_store.dart';
 import 'package:server/src/services/analyst_extraction_service.dart';
 import 'package:server/src/services/claude_conversation_service.dart';
+import 'package:server/src/services/connector_oauth_service.dart';
+import 'package:server/src/services/connector_registry.dart';
 import 'package:server/src/services/creative_extraction_service.dart';
 import 'package:server/src/services/developer_service.dart';
 import 'package:server/src/services/failure_diagnosis_service.dart';
@@ -14,6 +16,7 @@ import 'package:server/src/services/git_service.dart';
 import 'package:server/src/services/github_service.dart';
 import 'package:server/src/services/health_check_service.dart';
 import 'package:server/src/services/health_runner.dart';
+import 'package:server/src/services/keychain_service.dart';
 import 'package:server/src/services/message_routing_service.dart';
 import 'package:server/src/services/onboarding_service.dart';
 import 'package:server/src/services/review_service.dart';
@@ -23,6 +26,34 @@ import 'package:server/src/storage/registry_database.dart';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
+/// An in-memory fake for the `security` CLI -- never touches the real
+/// macOS Keychain. Good enough to round-trip `KeychainService`'s three
+/// operations for tests that don't care about real Keychain behavior
+/// (that's covered directly in `keychain_service_test.dart`).
+SecurityProcessRunner _inMemoryKeychain() {
+  final store = <String, String>{};
+  return (executable, args) async {
+    final account = args[args.indexOf('-a') + 1];
+    final service = args[args.indexOf('-s') + 1];
+    final key = '$service|$account';
+    switch (args.first) {
+      case 'add-generic-password':
+        store[key] = args[args.indexOf('-w') + 1];
+        return ProcessResult(0, 0, '', '');
+      case 'find-generic-password':
+        final value = store[key];
+        return value == null
+            ? ProcessResult(0, 44, '', 'not found')
+            : ProcessResult(0, 0, value, '');
+      case 'delete-generic-password':
+        store.remove(key);
+        return ProcessResult(0, 0, '', '');
+      default:
+        return ProcessResult(0, 1, '', 'unknown security action');
+    }
+  };
+}
+
 AppContext buildTestContext({
   ClaudeConversationService? conversationService,
   AnalystExtractionService? analystExtractionService,
@@ -31,6 +62,8 @@ AppContext buildTestContext({
   DeveloperService? developerService,
   ReviewService? reviewService,
   GitHubService? githubService,
+  ConnectorOAuthService? connectorOAuthService,
+  ConnectorRegistry? connectorRegistry,
   AgenticPaths? paths,
 }) {
   // A test that builds its own custom developerService/reviewService (which
@@ -113,6 +146,19 @@ AppContext buildTestContext({
     // developerService/reviewService) -- tests that exercise those routes
     // must pass the *same* fake instance here too.
     githubService: githubService ?? const GitHubService(),
+    connectorRegistry: connectorRegistry ?? const ConnectorRegistry(),
+    // Never hits a real OAuth provider: the default empty registry means
+    // beginConnect/completeConnect throw UnknownConnector before any HTTP
+    // call happens. Tests that care about a real connector flow inject
+    // their own `connectorOAuthService` (with a fake http.Client) and
+    // matching `connectorRegistry` directly.
+    connectorOAuthService:
+        connectorOAuthService ??
+        ConnectorOAuthService(
+          registry: connectorRegistry ?? const ConnectorRegistry(),
+          keychain: KeychainService(runner: _inMemoryKeychain()),
+          redirectUri: 'http://127.0.0.1:8787/connectors/callback',
+        ),
     paths: paths,
     // Never calls the real `claude` CLI in tests. Tests that care about
     // chat-reply behavior pass their own `conversationService`.

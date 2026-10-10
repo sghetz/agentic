@@ -190,6 +190,30 @@ void main() {
       expect(Source.fromJson(source.toJson()).projectId, isNull);
     });
 
+    test('Source connector-backed (oauthConnector)', () {
+      final source = Source(
+        id: 'source-3',
+        kind: SourceKind.oauthConnector,
+        config: const {'connectorId': 'outlook'},
+        createdAt: DateTime.utc(2026, 1, 1),
+      );
+      final roundTripped = Source.fromJson(source.toJson());
+      expect(roundTripped, source);
+      expect(roundTripped.config['connectorId'], 'outlook');
+    });
+
+    test('ConnectorDefinition', () {
+      const definition = ConnectorDefinition(
+        id: 'outlook',
+        displayName: 'Outlook',
+        authorizeUrl:
+            'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
+        tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+        scopes: ['Mail.Read', 'offline_access'],
+      );
+      expect(ConnectorDefinition.fromJson(definition.toJson()), definition);
+    });
+
     test('Message, routed with confidence', () {
       final message = Message(
         id: 'msg-1',

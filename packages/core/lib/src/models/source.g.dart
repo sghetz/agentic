@@ -23,10 +23,7 @@ Map<String, dynamic> _$SourceToJson(_Source instance) => <String, dynamic>{
 };
 
 const _$SourceKindEnumMap = {
-  SourceKind.slack: 'slack',
-  SourceKind.gchat: 'gchat',
-  SourceKind.outlook: 'outlook',
+  SourceKind.oauthConnector: 'oauthConnector',
   SourceKind.whatsappImport: 'whatsappImport',
-  SourceKind.meeting: 'meeting',
   SourceKind.erf: 'erf',
 };

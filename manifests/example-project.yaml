@@ -18,8 +18,7 @@ design_system:
   package: your_org_design_system # inherited from org unless overridden
 
 sources:
-  slack_channels: ["#banking-app-dev"]
-  google_chat_spaces: ["spaces/XXXXXXXX"]
+  connectors: ["outlook"]        # connected separately via the Connections screen (OAuth)
   erf_folder: ~/Documents/ERF/banking-app
 
 links:

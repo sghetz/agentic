@@ -4,6 +4,7 @@ import 'package:shelf/shelf.dart';
 
 import 'repositories/org_store.dart';
 import 'repositories/registry_store.dart';
+import 'services/connector_oauth_service.dart';
 import 'services/git_service.dart';
 import 'services/github_service.dart';
 import 'services/markitdown_service.dart';
@@ -72,6 +73,12 @@ Future<Response> guarded(Future<Response> Function() action) async {
     return badRequestResponse(
       'No worktree found for task ${e.taskId} -- run develop first',
     );
+  } on UnknownConnector catch (e) {
+    return notFoundResponse('Connector ${e.connectorId} not found');
+  } on InvalidOAuthState catch (e) {
+    return badRequestResponse(e.message);
+  } on ConnectorOAuthException catch (e) {
+    return upstreamErrorResponse(e.message);
   } on InvalidTaskTransition catch (e) {
     return conflictResponse({
       'error': 'invalid transition',

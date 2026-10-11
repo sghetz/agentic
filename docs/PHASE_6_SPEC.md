@@ -70,6 +70,21 @@ installed app.
 - **`ConnectorMessage.author` is left unset for transcripts.** Unlike a mail message, a meeting
   transcript has no single sender -- forcing one would misrepresent a multi-party conversation.
 
+- **`ConnectionsScreen` ships Connect + Sync; Disconnect is deferred.** The build-order text
+  below originally said "Disconnect" too, but no backend route for revoking a connection (deleting
+  the Source row, clearing its Keychain entries) was ever built in slices 1-3. Rather than bolt
+  one on unplanned, this slice stays to what's actually backed by a real route; worth a small
+  dedicated follow-up later.
+- **The screen has no "finish connecting" step of its own.** `beginConnectorConnect` returns the
+  authorize URL, the app opens it in the system browser via `url_launcher`, and the `Source` gets
+  created server-side once the OAuth callback lands (already built in slice 1) -- the owner just
+  comes back and taps the refresh icon. No polling, no deep link back into the app.
+- **Found and fixed live: the new "Connections" tab pushed "Dashboard" off the visible tab bar**,
+  breaking `app_shell_test.dart`'s existing tap-to-navigate test (the horizontal
+  `SingleChildScrollView` doesn't auto-scroll a tapped widget into view) -- a genuine usability
+  regression on a narrow window, not just a test artifact. Fixed by appending "Connections" after
+  "Dashboard" instead of before it, so every existing tab keeps its prior on-screen position.
+
 ## Build order
 
 1. Connector framework core: `core.ConnectorDefinition`, `ConnectorAdapter` interface, a static
@@ -85,7 +100,7 @@ installed app.
    meeting transcripts and maps each to one `core.Message` (the full transcript as `body`).
 4. UI: a "Connections" screen per org -- lists available connector types from the registry,
    "Connect" opens the system browser for the OAuth flow, shows connected accounts with a
-   "Sync now" and "Disconnect" action.
+   "Sync now" action (Disconnect deferred -- no backend route for it yet).
 5. Packaging: `dart compile exe` for the server, a launchd LaunchAgent plist, a DMG for the
    Flutter app (unsigned, per `ARCHITECTURE.md` -- fine for personal use), a first-run wizard
    (external dependency checks, Claude Code auth, first org, first connector connection).
@@ -101,5 +116,5 @@ manual file copying.
 - [x] 1. Connector framework core (OAuth routes, Keychain storage, registry)
 - [x] 2. Outlook connector adapter
 - [x] 3. Meeting-transcript connector adapter (Zoom)
-- [ ] 4. Connections UI
+- [x] 4. Connections UI
 - [ ] 5. Packaging (compile exe, launchd, DMG, first-run wizard)

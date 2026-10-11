@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../ui/chat/chat_screen.dart';
+import '../ui/connections/connections_screen.dart';
 import '../ui/dashboard/dashboard_screen.dart';
 import '../ui/inbox/inbox_screen.dart';
 import '../ui/shell/app_shell.dart';
@@ -38,6 +39,10 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: '/inbox',
             builder: (context, state) => const InboxScreen(),
+          ),
+          GoRoute(
+            path: '/connections',
+            builder: (context, state) => const ConnectionsScreen(),
           ),
         ],
       ),

@@ -53,13 +53,14 @@ class _MainTabs extends StatelessWidget {
     final isDashboard = currentPath.startsWith('/dashboard');
     final isChat = currentPath.startsWith('/chat');
     final isInbox = currentPath.startsWith('/inbox');
+    final isConnections = currentPath.startsWith('/connections');
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
           _TabButton(
             label: 'Tasks',
-            selected: !isDashboard && !isChat && !isInbox,
+            selected: !isDashboard && !isChat && !isInbox && !isConnections,
             onTap: () => context.go('/tasks'),
           ),
           _TabButton(
@@ -76,6 +77,11 @@ class _MainTabs extends StatelessWidget {
             label: 'Dashboard',
             selected: isDashboard,
             onTap: () => context.go('/dashboard'),
+          ),
+          _TabButton(
+            label: 'Connections',
+            selected: isConnections,
+            onTap: () => context.go('/connections'),
           ),
         ],
       ),

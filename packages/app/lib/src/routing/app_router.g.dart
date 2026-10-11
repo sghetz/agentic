@@ -48,4 +48,4 @@ final class AppRouterProvider
   }
 }
 
-String _$appRouterHash() => r'398d1a07cdb3e0cf81d67459b7923e0b3ceaf2dd';
+String _$appRouterHash() => r'30315d5b8aaa20f8acba12eedaba1f00f59d2e96';

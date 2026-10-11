@@ -434,6 +434,46 @@ class ApiClient {
         .toList();
   }
 
+  // ---- Connectors ----
+
+  Future<List<core.ConnectorDefinition>> listConnectors() async {
+    final body = await _send('GET', _uri('/connectors')) as List;
+    return body
+        .map(
+          (e) => core.ConnectorDefinition.fromJson(e as Map<String, Object?>),
+        )
+        .toList();
+  }
+
+  /// Stores the owner-supplied client id/secret and returns the URL to open
+  /// in the system browser to complete sign-in. The resulting `Source` is
+  /// created server-side once the OAuth callback lands -- there's no
+  /// separate "finish connecting" call from the app.
+  Future<String> beginConnectorConnect(
+    String orgId,
+    String connectorId, {
+    required String clientId,
+    required String clientSecret,
+  }) async {
+    final body =
+        await _send(
+              'POST',
+              _uri('/orgs/$orgId/connectors/$connectorId/connect'),
+              json: {'clientId': clientId, 'clientSecret': clientSecret},
+            )
+            as Map<String, Object?>;
+    return body['authorizeUrl'] as String;
+  }
+
+  Future<Map<String, Object?>> syncSource(String orgId, String sourceId) async {
+    final body = await _send(
+      'POST',
+      _uri('/orgs/$orgId/sources/$sourceId/sync'),
+      json: const {},
+    );
+    return body! as Map<String, Object?>;
+  }
+
   Future<Map<String, Object?>> scanErfSource(
     String orgId,
     String sourceId,

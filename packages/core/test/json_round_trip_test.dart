@@ -214,6 +214,26 @@ void main() {
       expect(ConnectorDefinition.fromJson(definition.toJson()), definition);
     });
 
+    test('DependencyCheck found, with a version', () {
+      const check = DependencyCheck(
+        name: 'git',
+        found: true,
+        version: '2.43.0',
+      );
+      expect(DependencyCheck.fromJson(check.toJson()), check);
+    });
+
+    test('DependencyCheck not found, with an error', () {
+      const check = DependencyCheck(
+        name: 'claude',
+        found: false,
+        error: 'command not found',
+      );
+      final roundTripped = DependencyCheck.fromJson(check.toJson());
+      expect(roundTripped, check);
+      expect(roundTripped.version, isNull);
+    });
+
     test('Message, routed with confidence', () {
       final message = Message(
         id: 'msg-1',

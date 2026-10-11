@@ -20,6 +20,7 @@ import 'package:server/src/services/keychain_service.dart';
 import 'package:server/src/services/message_routing_service.dart';
 import 'package:server/src/services/onboarding_service.dart';
 import 'package:server/src/services/review_service.dart';
+import 'package:server/src/services/system_check_service.dart';
 import 'package:server/src/services/trivial_fix_service.dart';
 import 'package:server/src/storage/org_database.dart';
 import 'package:server/src/storage/registry_database.dart';
@@ -64,6 +65,7 @@ AppContext buildTestContext({
   GitHubService? githubService,
   ConnectorOAuthService? connectorOAuthService,
   ConnectorRegistry? connectorRegistry,
+  SystemCheckService? systemCheckService,
   AgenticPaths? paths,
 }) {
   // A test that builds its own custom developerService/reviewService (which
@@ -158,6 +160,15 @@ AppContext buildTestContext({
           registry: connectorRegistry ?? ConnectorRegistry(),
           keychain: KeychainService(runner: _inMemoryKeychain()),
           redirectUri: 'http://127.0.0.1:8787/connectors/callback',
+        ),
+    // Never shells out to the real git/flutter/claude binaries in tests --
+    // that's slow (flutter --version alone takes seconds) even though it's
+    // harmless. Tests that care about check results inject their own.
+    systemCheckService:
+        systemCheckService ??
+        SystemCheckService(
+          runner: (executable, args) async =>
+              ProcessResult(0, 0, '$executable (fake)', ''),
         ),
     paths: paths,
     // Never calls the real `claude` CLI in tests. Tests that care about

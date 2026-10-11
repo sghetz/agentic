@@ -16,6 +16,9 @@ class _FakeApiClient extends ApiClient {
   @override
   Future<core.DashboardSummary> dashboard() async =>
       const core.DashboardSummary(orgs: []);
+
+  @override
+  Future<List<core.DependencyCheck>> checkSystem() async => const [];
 }
 
 Widget _buildApp() {
@@ -47,6 +50,6 @@ void main() {
     await tester.tap(find.text('Dashboard'));
     await tester.pumpAndSettle();
 
-    expect(find.text('No organizations yet'), findsOneWidget);
+    expect(find.text('Welcome to Agentic'), findsOneWidget);
   });
 }

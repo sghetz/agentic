@@ -17,6 +17,7 @@ import 'routes/project_links_routes.dart';
 import 'routes/projects_routes.dart';
 import 'routes/reviewer_routes.dart';
 import 'routes/source_routes.dart';
+import 'routes/system_check_routes.dart';
 import 'routes/task_events_routes.dart';
 import 'routes/task_spec_routes.dart';
 import 'routes/tasks_routes.dart';
@@ -41,6 +42,7 @@ Router buildRouter(AppContext ctx) {
   registerSourceRoutes(router, ctx);
   registerMessageRoutes(router, ctx);
   registerConnectorRoutes(router, ctx);
+  registerSystemCheckRoutes(router, ctx);
 
   return router;
 }

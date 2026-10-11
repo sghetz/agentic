@@ -7,7 +7,7 @@ The owner talks to agents one-on-one or in a general chat, per project.
 Agentic is the project name; use it for the app name, bundle display name, and data folders.
 
 Full design: `docs/ARCHITECTURE.md`. Build plan: `docs/ROADMAP.md`. Agent roles: `docs/AGENTS.md`.
-Current phase spec: `docs/PHASE_4_SPEC.md` (follow it exactly; update its Progress list after each approved slice).
+Current phase spec: `docs/PHASE_6_SPEC.md` (follow it exactly; update its Progress list after each approved slice).
 Always check the roadmap for the current phase before starting work, and do not build ahead of it.
 
 ## Stack (all Dart)
@@ -15,9 +15,11 @@ Always check the roadmap for the current phase before starting work, and do not 
 - **Monorepo**: Dart pub workspace with three packages (see layout).
 - **Shared models** (`packages/core`): data models and artifact types used by both server and app.
 - **Backend** (`packages/server`): Dart, `shelf` + `shelf_router`, WebSockets, `drift` (SQLite),
-  `cron` for scheduling. Compiled with `dart compile exe`.
+  `cron` for scheduling. Compiled with `dart build cli` (`scripts/build_server.sh`), not `dart
+  compile exe` -- the latter doesn't support packages with native build hooks, and `sqlite3`
+  (via `drift`) has one.
 - **Agents**: every reasoning and conversational agent (Orchestrator, Analyst, Health, Creative,
-  Reviewer, Librarian) runs on Claude Code CLI non-interactively -- reuses existing Claude Code
+  Developer, Reviewer, Librarian) runs on Claude Code CLI non-interactively -- reuses existing Claude Code
   auth, no separate Anthropic API key. One conversation per (role, project), continued across
   turns with `--resume`/`-c`; structured output via `--json-schema`; tool-free calls (e.g. Health
   diagnosis) via `--tools ""`. An agent that needs to take an action during a conversation (e.g.
@@ -81,6 +83,11 @@ dart test packages/core packages/server       # backend tests
 cd packages/app && flutter pub get            # app deps (resolved independently, see note below)
 cd packages/app && flutter run -d macos       # run UI
 cd packages/app && flutter test               # UI widget tests
+
+./scripts/build_server.sh                     # compile the server -> build/server/bundle/
+./scripts/build_dmg.sh                        # flutter build macos --release -> build/dmg/Agentic.dmg
+./scripts/install_launchagent.sh              # install + start the compiled server as a LaunchAgent
+./scripts/uninstall_launchagent.sh            # stop + remove it
 ```
 
 `packages/app` is intentionally **not** a member of the root Dart pub workspace: Flutter's

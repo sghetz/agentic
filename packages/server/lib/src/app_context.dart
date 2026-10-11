@@ -20,6 +20,7 @@ import 'services/keychain_service.dart';
 import 'services/message_routing_service.dart';
 import 'services/onboarding_service.dart';
 import 'services/review_service.dart';
+import 'services/system_check_service.dart';
 import 'services/trivial_fix_service.dart';
 import 'services/whatsapp_import_service.dart';
 import 'storage/org_database.dart';
@@ -42,6 +43,7 @@ class AppContext {
     required this.paths,
     this.gitService = const GitService(),
     this.githubService = const GitHubService(),
+    this.systemCheckService = const SystemCheckService(),
     ConnectorRegistry? connectorRegistry,
     ConnectorSyncService? connectorSyncService,
     this.conversationService = const ClaudeConversationService(),
@@ -128,6 +130,7 @@ class AppContext {
   final ConnectorSyncService connectorSyncService;
   final GitService gitService;
   final GitHubService githubService;
+  final SystemCheckService systemCheckService;
   final ConnectorRegistry connectorRegistry;
   final ClaudeConversationService conversationService;
   final AnalystExtractionService analystExtractionService;

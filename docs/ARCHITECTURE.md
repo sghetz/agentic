@@ -175,10 +175,20 @@ Finished projects are archived, never deleted.
 
 ## 10. Packaging (macOS)
 
-- UI: Flutter macOS app, sandbox disabled, DMG. Unsigned is fine for personal use.
-- Server: `dart compile exe` single binary, registered as a launchd LaunchAgent.
-- External dependencies checked on first run: git, Flutter/FVM, Claude Code, and (later) MarkItDown, whisper.cpp.
-- First-run wizard: Claude API key, org creation, OAuth connections, repo folders.
+- UI: Flutter macOS app, sandbox disabled, DMG (`scripts/build_dmg.sh`). Unsigned is fine for
+  personal use.
+- Server: a native binary via `dart build cli` (`scripts/build_server.sh`) -- not `dart compile
+  exe`, which doesn't support packages with native build hooks (`sqlite3`, used by `drift`, has
+  one to bundle its native library). Produces a `bundle/` directory (`bin/server` +
+  `lib/libsqlite3.dylib`) rather than one standalone file; the two must be installed together.
+  Registered as a launchd LaunchAgent via `scripts/install_launchagent.sh`.
+- External dependencies checked on first run (`GET /system/check`): git, Flutter, Claude Code.
+  Surfaced in the app as part of the empty-dashboard first-run panel, before any org exists.
+  Deterministic `Process.run` checks, not an LLM call. (Later: MarkItDown, whisper.cpp.)
+- No separate Claude API key is collected anywhere -- every agent reuses the Claude Code CLI's
+  own existing auth (see §6), so first run is just: confirm the external CLIs are present, then
+  create the first organization (the existing org-switcher "+" already handles this; no
+  dedicated wizard flow needed on top of it).
 
 ## 11. Open decisions
 

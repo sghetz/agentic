@@ -9,3 +9,8 @@ part 'dashboard_providers.g.dart';
 Future<core.DashboardSummary> dashboard(Ref ref) {
   return ref.watch(apiClientProvider).dashboard();
 }
+
+@riverpod
+Future<List<core.DependencyCheck>> systemCheck(Ref ref) {
+  return ref.watch(apiClientProvider).checkSystem();
+}

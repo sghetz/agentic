@@ -13,6 +13,17 @@ class _FakeApiClient extends ApiClient {
 
   @override
   Future<core.DashboardSummary> dashboard() async => _summary;
+
+  @override
+  Future<List<core.DependencyCheck>> checkSystem() async => const [
+    core.DependencyCheck(name: 'git', found: true, version: 'git 2.43.0'),
+    core.DependencyCheck(
+      name: 'flutter',
+      found: true,
+      version: 'Flutter 3.29.0',
+    ),
+    core.DependencyCheck(name: 'claude', found: true, version: '2.1.222'),
+  ];
 }
 
 Widget _wrap(core.DashboardSummary summary) {
@@ -71,12 +82,17 @@ void main() {
     },
   );
 
-  testWidgets('shows an empty state with no organizations', (tester) async {
-    await tester.pumpWidget(_wrap(const core.DashboardSummary(orgs: [])));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'shows the first-run panel with no organizations, including a system check',
+    (tester) async {
+      await tester.pumpWidget(_wrap(const core.DashboardSummary(orgs: [])));
+      await tester.pumpAndSettle();
 
-    expect(find.text('No organizations yet'), findsOneWidget);
-  });
+      expect(find.text('Welcome to Agentic'), findsOneWidget);
+      expect(find.textContaining('git: git 2.43.0'), findsOneWidget);
+      expect(find.textContaining('claude: 2.1.222'), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'shows unrouted message and draft Task Spec counts when present',

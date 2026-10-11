@@ -667,4 +667,13 @@ class ApiClient {
     final body = await _send('GET', _uri('/dashboard'));
     return core.DashboardSummary.fromJson(body! as Map<String, Object?>);
   }
+
+  // ---- System check ----
+
+  Future<List<core.DependencyCheck>> checkSystem() async {
+    final body = await _send('GET', _uri('/system/check')) as List;
+    return body
+        .map((e) => core.DependencyCheck.fromJson(e as Map<String, Object?>))
+        .toList();
+  }
 }

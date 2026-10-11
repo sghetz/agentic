@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../state/dashboard_providers.dart';
-import '../common/empty_state.dart';
 import '../common/error_state.dart';
 import '../common/loading_state.dart';
 
@@ -43,7 +42,7 @@ class DashboardScreen extends ConsumerWidget {
           child: dashboardAsync.when(
             data: (summary) {
               if (summary.orgs.isEmpty) {
-                return const EmptyState(message: 'No organizations yet');
+                return const _FirstRunPanel();
               }
               return ListView(
                 padding: const EdgeInsets.all(16),
@@ -60,6 +59,100 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Shown instead of the plain "no organizations" message the very first
+/// time the app runs (no org has been created yet): confirms the external
+/// CLIs every agent eventually shells out to are actually present, so a
+/// missing one surfaces here instead of as a confusing failure deep inside
+/// a Health check or an agent's first real run.
+class _FirstRunPanel extends ConsumerWidget {
+  const _FirstRunPanel();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final checksAsync = ref.watch(systemCheckProvider);
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.rocket_launch_outlined,
+              size: 48,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Welcome to Agentic',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Create your first organization from the "+" next to the '
+              'org switcher in the sidebar to get started.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            checksAsync.when(
+              data: (checks) => Column(
+                children: [for (final check in checks) _CheckRow(check: check)],
+              ),
+              loading: () => const Padding(
+                padding: EdgeInsets.all(8),
+                child: SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+              error: (error, _) => TextButton(
+                onPressed: () => ref.invalidate(systemCheckProvider),
+                child: const Text(
+                  'Could not check system requirements -- retry',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CheckRow extends StatelessWidget {
+  const _CheckRow({required this.check});
+
+  final core.DependencyCheck check;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Icon(
+            check.found ? Icons.check_circle : Icons.error,
+            size: 18,
+            color: check.found
+                ? Colors.green
+                : Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              check.found
+                  ? '${check.name}: ${check.version ?? 'found'}'
+                  : '${check.name}: not found',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
